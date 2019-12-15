@@ -8,10 +8,10 @@ namespace EmailNotifier
 {
     public static class ProgramSettings
     {
-        public static string fileName = "emailNotifierData.bin";
+        public static string emailDataFileName = "emailNotifierData.bin";
 
 #if DEBUG
-        public static string currentPath = @"C:\testDesktop\conf";
+        public static string fileSavePath = @"C:\testDesktop\conf\";
 #else
          public static string currentPath = Application.StartupPath;
 #endif

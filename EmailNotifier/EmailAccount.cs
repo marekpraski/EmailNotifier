@@ -10,40 +10,43 @@ namespace EmailNotifier
     public class EmailAccount
     {
         public string name { get; set; }
-        public Dictionary<string, EmailMessage> emailsDict {get; set;}
-        private Dictionary<string, EmailMessage> newEmailsDict;
-        public EmailConfiguration configuration { get; set; }
-        private bool newEmails = false;
+        public LinkedList<IEmailMessage> emailsList { get; set; }
+        public LinkedList<IEmailMessage> newEmailsList { get; set; }
+        public IEmailAccountConfiguration configuration { get; set; }
+        public bool hasNewEmails { get; set; }
 
         public EmailAccount()
         {
-            emailsDict = new Dictionary<string, EmailMessage>();
-            newEmailsDict = new Dictionary<string, EmailMessage>();
+            emailsList = new LinkedList<IEmailMessage>();
+            newEmailsList = new LinkedList<IEmailMessage>();
         }
 
-        public void addEmail(EmailMessage email)
+        public void addEmail(IEmailMessage email)
         {
-            if (!emailsDict.ContainsKey(email.messageId))
+                emailsList.AddFirst(email);
+                newEmailsList.AddFirst(email);
+                hasNewEmails = true;
+        }
+
+        public void addEmail(LinkedList<IEmailMessage> emails)
+        {
+            while(emails.Count>0)
             {
-                emailsDict.Add(email.messageId, email);
-                newEmailsDict.Add(email.messageId, email);
-                newEmails = true;
+                addEmail(emails.Last.Value);
+                emails.RemoveLast();
             }
+            
         }
 
-        public bool hasNewEmails()
-        {
-            return newEmails;
-        }
 
-        public void markEmailRead(EmailMessage email)
+        public void markEmailRead(IEmailMessage email)
         {
-            if(newEmails)
+            if(hasNewEmails && newEmailsList.Contains(email))
             {
-                newEmailsDict.Remove(email.messageId);
-                if (newEmailsDict.Count > 0)
+                newEmailsList.Remove(email);
+                if (newEmailsList.Count == 0)
                 {
-                    newEmails = false;
+                    hasNewEmails = false;
                 }
             }
         }

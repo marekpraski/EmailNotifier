@@ -8,7 +8,12 @@ namespace EmailNotifier
 {
     public interface IEmailService
     {
-        void Send(EmailMessage emailMessage);
-        Dictionary<string, EmailMessage> ReceiveEmail(int maxCount = 10);
+
+
+        void SendEmails(IList<IEmailMessage> emailMessages);
+        LinkedList<IEmailMessage> ReceiveEmails(int numberOfMessages);
+        LinkedList<IEmailMessage> ReceiveEmails(IEmailMessage lastEmail);
+
+
     }
 }

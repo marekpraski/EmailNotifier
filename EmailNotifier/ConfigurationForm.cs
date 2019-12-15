@@ -12,40 +12,125 @@ namespace EmailNotifier
 {
     public partial class ConfigurationForm : Form
     {
-        public delegate void acceptButtonClickedEventHandler(object sender, ConfigurationFormEventArgs args);
-        public event acceptButtonClickedEventHandler acceptButtonClickedEvent;
-        EmailAccount account;
+        public delegate void saveButtonClickedEventHandler(object sender, ConfigurationFormEventArgs args);
+        public event saveButtonClickedEventHandler saveButtonClickedEvent;
+
+        private readonly Dictionary<string, EmailAccount> emailAccounts = new Dictionary<string, EmailAccount>();
+        private readonly List<EmailAccount> emailAccountsList = new List<EmailAccount>();
+
+        private AccountConfigurationControl accountConfigurationControl;
 
         public ConfigurationForm()
         {
             InitializeComponent();
         }
 
-        private void getConfiguration()
+        public ConfigurationForm(Dictionary<string, EmailAccount> emailAccounts)
         {
-            account = new EmailAccount();
-            account.name = accountConfiguration1.getAccountName();
-
-            EmailConfiguration emailConfig = new EmailConfiguration();
-            emailConfig.PopPassword = accountConfiguration1.getPassword();
-            emailConfig.PopPort = accountConfiguration1.getPort();
-            emailConfig.PopServer = accountConfiguration1.getServerName();
-            emailConfig.PopUsername = accountConfiguration1.getUserName();
-            emailConfig.PopUseTSL = accountConfiguration1.getAuthorisation();
-
-            account.configuration = emailConfig; 
+            this.emailAccounts = emailAccounts;
+            InitializeComponent();
+            setupAccountConfigurationControl();
         }
 
-        private void AcceptButton_Click(object sender, EventArgs e)
+
+        #region Region - interakcja użytkownika
+
+        private void AddNewAccountButton_Click(object sender, EventArgs e)
         {
-            if(acceptButtonClickedEvent != null)
+            addOrUpdateAccountConfiguration();
+            accountConfigurationControl.Clear();
+        }
+
+
+        private void DeleteAccountButton_Click(object sender, EventArgs e)
+        {
+            MyMessageBoxResults result = MyMessageBox.display("Usunąć zaznaczone konto?", MessageBoxType.YesNo);
+            if(result == MyMessageBoxResults.Yes)
             {
-                getConfiguration();
-                ConfigurationFormEventArgs args = new ConfigurationFormEventArgs();
-                args.emailAccount = this.account;
-                acceptButtonClickedEvent(this, args);
+                string accountName = accountConfigurationControl.getAccountName();
+                emailAccounts.Remove(accountName);
+                accountConfigurationControl.Clear();
             }
-            this.Close();
         }
+
+
+        private void saveButton_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (saveButtonClickedEvent != null)
+                {
+                    if (addOrUpdateAccountConfiguration() || emailAccounts.Count > 0)
+                    {
+                        ConfigurationFormEventArgs args = new ConfigurationFormEventArgs();
+                        args.emailAccounts = this.emailAccounts;
+                        saveButtonClickedEvent(this, args);
+                    }
+                }
+                this.Close();
+
+            }
+            catch (InvalidEmailAccountException ex)
+            {
+                
+                MyMessageBox.display(ex.message + "\r\n" + ex.Source, MessageBoxType.Error);
+            }
+        }
+
+        #endregion
+
+
+
+        private void setupAccountConfigurationControl()
+        {
+            this.accountConfigurationControl = new AccountConfigurationControl(emailAccounts);
+            this.accountConfigurationControl.Location = new System.Drawing.Point(12, 28);
+            this.accountConfigurationControl.Name = "accountConfiguration1";
+            this.accountConfigurationControl.Size = new System.Drawing.Size(369, 149);
+            this.accountConfigurationControl.TabIndex = 0;
+
+            this.Controls.Add(this.accountConfigurationControl);
+        }
+
+
+
+        private bool addOrUpdateAccountConfiguration()
+        {
+            EmailAccount account;
+            string accountName = accountConfigurationControl.getAccountName();
+            if (emailAccounts.ContainsKey(accountName))
+            {
+                emailAccounts.TryGetValue(accountName, out account);
+                IEmailAccountConfiguration emailConfig = account.configuration;
+                setAccountParameters(account, emailConfig);
+                return true;
+            }
+
+            if (accountName != "" && accountName != null)
+            {
+                account = new EmailAccount();
+                account.name = accountName;
+                IEmailAccountConfiguration emailConfig = new EmailAccountConfiguration();
+                setAccountParameters(account, emailConfig);
+
+                emailAccounts.Add(accountName, account);
+
+                return true;
+            }
+            return false;
+        }
+
+        private void setAccountParameters(EmailAccount account, IEmailAccountConfiguration emailConfig)
+        {
+            emailConfig.ReceivePassword = accountConfigurationControl.getPassword();
+            emailConfig.ReceivePort = accountConfigurationControl.getPort();
+            emailConfig.ReceiveServer = accountConfigurationControl.getServerName();
+            emailConfig.ReceiveUsername = accountConfigurationControl.getUserName();
+            emailConfig.ReceiveUseAuthorisation = accountConfigurationControl.getAuthorisation();
+            account.configuration = emailConfig;
+        }
+
+
+
     }
 }

@@ -30,19 +30,13 @@
         {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
-            this.button1 = new System.Windows.Forms.Button();
             this.notifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
+            this.toolStrip1 = new System.Windows.Forms.ToolStrip();
+            this.checkForEmailsButton = new System.Windows.Forms.ToolStripButton();
+            this.editButton = new System.Windows.Forms.ToolStripButton();
+            this.showEmailsButton = new System.Windows.Forms.ToolStripButton();
+            this.toolStrip1.SuspendLayout();
             this.SuspendLayout();
-            // 
-            // button1
-            // 
-            this.button1.Location = new System.Drawing.Point(37, 45);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(119, 23);
-            this.button1.TabIndex = 0;
-            this.button1.Text = "sprawdź email";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.Button1_Click);
             // 
             // notifyIcon1
             // 
@@ -52,23 +46,74 @@
             this.notifyIcon1.Text = "Email Notifier";
             this.notifyIcon1.DoubleClick += new System.EventHandler(this.NotifyIcon1_DoubleClick);
             // 
-            // Form1
+            // toolStrip1
+            // 
+            this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.checkForEmailsButton,
+            this.editButton,
+            this.showEmailsButton});
+            this.toolStrip1.Location = new System.Drawing.Point(0, 0);
+            this.toolStrip1.Name = "toolStrip1";
+            this.toolStrip1.Size = new System.Drawing.Size(231, 25);
+            this.toolStrip1.TabIndex = 2;
+            this.toolStrip1.Text = "toolStrip1";
+            // 
+            // checkForEmailsButton
+            // 
+            this.checkForEmailsButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.checkForEmailsButton.Image = ((System.Drawing.Image)(resources.GetObject("checkForEmailsButton.Image")));
+            this.checkForEmailsButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.checkForEmailsButton.Name = "checkForEmailsButton";
+            this.checkForEmailsButton.Size = new System.Drawing.Size(23, 22);
+            this.checkForEmailsButton.Text = "toolStripButton1";
+            this.checkForEmailsButton.ToolTipText = "check email";
+            this.checkForEmailsButton.Click += new System.EventHandler(this.checkForEmailsButton_Click);
+            // 
+            // editButton
+            // 
+            this.editButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.editButton.Image = ((System.Drawing.Image)(resources.GetObject("editButton.Image")));
+            this.editButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.editButton.Name = "editButton";
+            this.editButton.Size = new System.Drawing.Size(23, 22);
+            this.editButton.Text = "toolStripButton1";
+            this.editButton.ToolTipText = "edit or add email accounts";
+            this.editButton.Click += new System.EventHandler(this.EditButton_Click);
+            // 
+            // showEmailsButton
+            // 
+            this.showEmailsButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.showEmailsButton.Image = ((System.Drawing.Image)(resources.GetObject("showEmailsButton.Image")));
+            this.showEmailsButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.showEmailsButton.Name = "showEmailsButton";
+            this.showEmailsButton.Size = new System.Drawing.Size(23, 22);
+            this.showEmailsButton.Text = "toolStripButton1";
+            this.showEmailsButton.ToolTipText = "show emails";
+            this.showEmailsButton.Click += new System.EventHandler(this.ShowEmailsButton_Click);
+            // 
+            // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(428, 186);
-            this.Controls.Add(this.button1);
-            this.Name = "Form1";
-            this.Text = "Form1";
+            this.AutoScroll = true;
+            this.ClientSize = new System.Drawing.Size(231, 46);
+            this.Controls.Add(this.toolStrip1);
+            this.Name = "MainForm";
+            this.Text = "Email Notifier";
             this.Resize += new System.EventHandler(this.Form1_Resize);
+            this.toolStrip1.ResumeLayout(false);
+            this.toolStrip1.PerformLayout();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
         #endregion
-
-        private System.Windows.Forms.Button button1;
         private System.Windows.Forms.NotifyIcon notifyIcon1;
+        private System.Windows.Forms.ToolStrip toolStrip1;
+        private System.Windows.Forms.ToolStripButton checkForEmailsButton;
+        private System.Windows.Forms.ToolStripButton editButton;
+        private System.Windows.Forms.ToolStripButton showEmailsButton;
     }
 }
 

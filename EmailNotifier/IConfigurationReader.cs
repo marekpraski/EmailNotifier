@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace EmailNotifier
 {
-    public class ConfigurationFormEventArgs : EventArgs
+    interface IConfigurationReader
     {
-        public Dictionary<string,EmailAccount> emailAccounts { get; set; }
+        EmailAccountConfiguration getConfiguration();
     }
 }

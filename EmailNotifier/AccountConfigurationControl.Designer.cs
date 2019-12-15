@@ -48,7 +48,7 @@
             this.serverNameLabel.Location = new System.Drawing.Point(5, 31);
             this.serverNameLabel.Name = "serverNameLabel";
             this.serverNameLabel.Size = new System.Drawing.Size(63, 13);
-            this.serverNameLabel.TabIndex = 0;
+            this.serverNameLabel.TabIndex = 9;
             this.serverNameLabel.Text = "serwer POP";
             // 
             // portLabel
@@ -57,7 +57,7 @@
             this.portLabel.Location = new System.Drawing.Point(5, 55);
             this.portLabel.Name = "portLabel";
             this.portLabel.Size = new System.Drawing.Size(25, 13);
-            this.portLabel.TabIndex = 1;
+            this.portLabel.TabIndex = 8;
             this.portLabel.Text = "port";
             // 
             // userNameLabel
@@ -66,7 +66,7 @@
             this.userNameLabel.Location = new System.Drawing.Point(5, 106);
             this.userNameLabel.Name = "userNameLabel";
             this.userNameLabel.Size = new System.Drawing.Size(100, 13);
-            this.userNameLabel.TabIndex = 2;
+            this.userNameLabel.TabIndex = 7;
             this.userNameLabel.Text = "nazwa użytkownika";
             // 
             // passwordLabel
@@ -75,7 +75,7 @@
             this.passwordLabel.Location = new System.Drawing.Point(4, 129);
             this.passwordLabel.Name = "passwordLabel";
             this.passwordLabel.Size = new System.Drawing.Size(34, 13);
-            this.passwordLabel.TabIndex = 3;
+            this.passwordLabel.TabIndex = 6;
             this.passwordLabel.Text = "hasło";
             // 
             // serverNameTextBox
@@ -83,28 +83,28 @@
             this.serverNameTextBox.Location = new System.Drawing.Point(111, 28);
             this.serverNameTextBox.Name = "serverNameTextBox";
             this.serverNameTextBox.Size = new System.Drawing.Size(254, 20);
-            this.serverNameTextBox.TabIndex = 4;
+            this.serverNameTextBox.TabIndex = 1;
             // 
             // portTextBox
             // 
             this.portTextBox.Location = new System.Drawing.Point(111, 52);
             this.portTextBox.Name = "portTextBox";
             this.portTextBox.Size = new System.Drawing.Size(100, 20);
-            this.portTextBox.TabIndex = 5;
+            this.portTextBox.TabIndex = 2;
             // 
             // userNameTextBox
             // 
             this.userNameTextBox.Location = new System.Drawing.Point(111, 103);
             this.userNameTextBox.Name = "userNameTextBox";
             this.userNameTextBox.Size = new System.Drawing.Size(254, 20);
-            this.userNameTextBox.TabIndex = 6;
+            this.userNameTextBox.TabIndex = 4;
             // 
             // passwordTextBox
             // 
             this.passwordTextBox.Location = new System.Drawing.Point(111, 126);
             this.passwordTextBox.Name = "passwordTextBox";
             this.passwordTextBox.Size = new System.Drawing.Size(254, 20);
-            this.passwordTextBox.TabIndex = 7;
+            this.passwordTextBox.TabIndex = 5;
             // 
             // accountNameComboBox
             // 
@@ -112,7 +112,8 @@
             this.accountNameComboBox.Location = new System.Drawing.Point(111, 1);
             this.accountNameComboBox.Name = "accountNameComboBox";
             this.accountNameComboBox.Size = new System.Drawing.Size(254, 21);
-            this.accountNameComboBox.TabIndex = 8;
+            this.accountNameComboBox.TabIndex = 0;
+            this.accountNameComboBox.SelectedIndexChanged += new System.EventHandler(this.AccountNameComboBox_SelectedIndexChanged);
             // 
             // accountNameLabel
             // 
@@ -120,7 +121,7 @@
             this.accountNameLabel.Location = new System.Drawing.Point(4, 8);
             this.accountNameLabel.Name = "accountNameLabel";
             this.accountNameLabel.Size = new System.Drawing.Size(68, 13);
-            this.accountNameLabel.TabIndex = 9;
+            this.accountNameLabel.TabIndex = 5;
             this.accountNameLabel.Text = "nazwa konta";
             // 
             // authorisationLabel
@@ -129,7 +130,7 @@
             this.authorisationLabel.Location = new System.Drawing.Point(5, 81);
             this.authorisationLabel.Name = "authorisationLabel";
             this.authorisationLabel.Size = new System.Drawing.Size(102, 13);
-            this.authorisationLabel.TabIndex = 10;
+            this.authorisationLabel.TabIndex = 4;
             this.authorisationLabel.Text = "uwierzytenienie TSL";
             // 
             // authorisationComboBox
@@ -138,7 +139,7 @@
             this.authorisationComboBox.Location = new System.Drawing.Point(111, 78);
             this.authorisationComboBox.Name = "authorisationComboBox";
             this.authorisationComboBox.Size = new System.Drawing.Size(100, 21);
-            this.authorisationComboBox.TabIndex = 11;
+            this.authorisationComboBox.TabIndex = 3;
             // 
             // AccountConfigurationControl
             // 
