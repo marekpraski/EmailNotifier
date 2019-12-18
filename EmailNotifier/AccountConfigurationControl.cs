@@ -52,7 +52,15 @@ namespace EmailNotifier
 
         public int getPort()
         {
-            return int.Parse(portTextBox.Text);
+            int portNr;
+            bool parsed = int.TryParse(portTextBox.Text, out portNr);
+
+            if(!parsed)
+            {
+                throw new ArgumentException("Nazwa portu musi być liczbą naturalną");
+            }
+            return portNr;
+            
         }
 
         public string getPassword()
@@ -67,6 +75,10 @@ namespace EmailNotifier
 
         public string getServerName()
         {
+            if(serverNameTextBox.Text == "")
+            {
+                throw new ArgumentException("Pole nazwy serwera nie może być puste");
+            }
             return serverNameTextBox.Text;
         }
 

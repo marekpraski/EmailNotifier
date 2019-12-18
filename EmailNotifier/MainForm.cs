@@ -58,28 +58,14 @@ namespace EmailNotifier
 
         private void updateMailboxes(string emailDataFile)
         {
-            ConfigurationForm configForm = new ConfigurationForm(generateAccountConfigDict(mailBoxes));    //przesyłam słownik konfiguracji kont, żeby można było anulować zmiany
+            ConfigurationForm configForm = new ConfigurationForm(generateAccountConfigurationsDict(mailBoxes));    //przesyłam słownik konfiguracji kont, żeby można było anulować zmiany
             configForm.saveButtonClickedEvent += configurationFormSaveButtonClicked;
             configForm.ShowDialog();
             configForm.saveButtonClickedEvent -= configurationFormSaveButtonClicked;    //likwiduję zdarzenie żeby zapobiec wyciekowi pamięci
-
-            if (this.mailBoxes.Count > 0)
-            {
-                foreach (string mailboxName in this.mailBoxes.Keys)
-                {
-                    EmailAccount mailbox;
-                    mailBoxes.TryGetValue(mailboxName, out mailbox);
-
-                    if (mailbox.allEmailsList.Count == 0)
-                    {
-                        getMessages(mailbox);       //startową liczbę maili wczytuję tylko dla nowych kont
-                    }
-                    saveDataToFile(emailDataFile);                    
-                }
-            }
         }
 
-        private Dictionary<string, IEmailAccountConfiguration> generateAccountConfigDict(Dictionary<string, EmailAccount> mailBoxes)
+
+        private Dictionary<string, IEmailAccountConfiguration> generateAccountConfigurationsDict(Dictionary<string, EmailAccount> mailBoxes)
         {
             Dictionary<string, IEmailAccountConfiguration> accountConfigDict = new Dictionary<string, IEmailAccountConfiguration>();
             EmailAccount account;
@@ -117,13 +103,14 @@ namespace EmailNotifier
 
 
         /// <summary>
-        /// ujednolicam słowniki kont, przechowywane w tym oknie ze słownikiem konfiguracji kont otrzymanym z okna wczytywania konfiguracji
+        /// ujednolicam zawartość słowników kont: przechowywanego w tym oknie ze słownikiem konfiguracji kont otrzymanym z okna wczytywania konfiguracji
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="args"></param>
         private void configurationFormSaveButtonClicked(object sender, ConfigurationFormEventArgs args)
         {
-            // aktualizaję konfigurację konta, jeżeli konto jest w obu słownikach, dodaję nowe konto jeżeli go nie ma w słowniku kont a jest w słowniku konfiguracji
+            // aktualizaję konfigurację konta, jeżeli to konto jest w obu słownikach; 
+            //dodaję nowe konto jeżeli go nie ma w słowniku kont a jest w słowniku otrzymanym z okna konfiguracji
             foreach (string accountName in args.emailAccountConfigs.Keys)
             {
                 IEmailAccountConfiguration accountConfig;
@@ -143,7 +130,7 @@ namespace EmailNotifier
                 }
             }
 
-            // usuwam konto które jest w słowniku kont a nie ma go w słowniku konfiguracji
+            // usuwam konto które jest w słowniku kont a nie ma go w słowniku otrzymanym z okna konfiguracji
             string[] oldAccountNames = new string[mailBoxes.Keys.Count];
             mailBoxes.Keys.CopyTo(oldAccountNames,0);
             foreach(string accountName in oldAccountNames)
@@ -154,6 +141,22 @@ namespace EmailNotifier
                 }
             }
 
+            //dla nowych kont wczytuję startową liczbę maili 
+            if (this.mailBoxes.Count > 0)
+            {
+                foreach (string mailboxName in this.mailBoxes.Keys)
+                {
+                    EmailAccount mailbox;
+                    mailBoxes.TryGetValue(mailboxName, out mailbox);
+
+                    if (mailbox.allEmailsList.Count == 0)
+                    {
+                        getMessages(mailbox);       
+                    }
+                    saveDataToFile(ProgramSettings.fileSavePath + ProgramSettings.emailDataFileName);
+                }
+            }
+
         }
 
 
@@ -161,7 +164,7 @@ namespace EmailNotifier
         //pasek narzędziowy
         //
 
-        private void EditButton_Click(object sender, EventArgs e)
+        private void EditAccountsButton_Click(object sender, EventArgs e)
         {
             updateMailboxes(ProgramSettings.fileSavePath + ProgramSettings.emailDataFileName);
         }

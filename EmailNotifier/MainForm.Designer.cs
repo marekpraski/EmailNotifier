@@ -33,7 +33,7 @@
             this.notifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.checkForEmailsButton = new System.Windows.Forms.ToolStripButton();
-            this.editButton = new System.Windows.Forms.ToolStripButton();
+            this.editAccountsButton = new System.Windows.Forms.ToolStripButton();
             this.showNewEmailsButton = new System.Windows.Forms.ToolStripButton();
             this.showAllEmailsButton = new System.Windows.Forms.ToolStripButton();
             this.hideEmailsButton = new System.Windows.Forms.ToolStripButton();
@@ -52,7 +52,7 @@
             // 
             this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.checkForEmailsButton,
-            this.editButton,
+            this.editAccountsButton,
             this.showNewEmailsButton,
             this.showAllEmailsButton,
             this.hideEmailsButton});
@@ -73,16 +73,16 @@
             this.checkForEmailsButton.ToolTipText = "check for new emails on server";
             this.checkForEmailsButton.Click += new System.EventHandler(this.checkForEmailsButton_Click);
             // 
-            // editButton
+            // editAccountsButton
             // 
-            this.editButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.editButton.Image = ((System.Drawing.Image)(resources.GetObject("editButton.Image")));
-            this.editButton.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.editButton.Name = "editButton";
-            this.editButton.Size = new System.Drawing.Size(23, 22);
-            this.editButton.Text = "toolStripButton1";
-            this.editButton.ToolTipText = "edit or add email accounts";
-            this.editButton.Click += new System.EventHandler(this.EditButton_Click);
+            this.editAccountsButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.editAccountsButton.Image = ((System.Drawing.Image)(resources.GetObject("editAccountsButton.Image")));
+            this.editAccountsButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.editAccountsButton.Name = "editAccountsButton";
+            this.editAccountsButton.Size = new System.Drawing.Size(23, 22);
+            this.editAccountsButton.Text = "toolStripButton1";
+            this.editAccountsButton.ToolTipText = "edit or add email accounts";
+            this.editAccountsButton.Click += new System.EventHandler(this.EditAccountsButton_Click);
             // 
             // showNewEmailsButton
             // 
@@ -138,7 +138,7 @@
         private System.Windows.Forms.NotifyIcon notifyIcon1;
         private System.Windows.Forms.ToolStrip toolStrip1;
         private System.Windows.Forms.ToolStripButton checkForEmailsButton;
-        private System.Windows.Forms.ToolStripButton editButton;
+        private System.Windows.Forms.ToolStripButton editAccountsButton;
         private System.Windows.Forms.ToolStripButton showNewEmailsButton;
         private System.Windows.Forms.ToolStripButton hideEmailsButton;
         private System.Windows.Forms.ToolStripButton showAllEmailsButton;

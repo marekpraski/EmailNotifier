@@ -74,6 +74,10 @@ namespace EmailNotifier
                 
                 MyMessageBox.display(ex.message + "\r\n" + ex.Source, MessageBoxType.Error);
             }
+            catch(ArgumentException exc)
+            {
+                MyMessageBox.display(exc.Message, MessageBoxType.Error);
+            }
         }
 
         private void CancelChangesButton_Click(object sender, EventArgs e)

@@ -114,11 +114,15 @@ namespace EmailNotifier
             }
             catch (System.Net.Sockets.SocketException exc)
             {
-                MyMessageBox.display(exc.Message + "  " + emailAccountConfiguration.ReceiveServer);
+                MyMessageBox.display(exc.Message + "  " + emailAccountConfiguration.ReceiveServer, MessageBoxType.Error);
             }
-            catch(MailKit.Security.AuthenticationException ex)
+            catch(MailKit.Net.Pop3.Pop3ProtocolException popexc)
             {
-                MyMessageBox.display(ex.Message + "  " + emailAccountConfiguration.ReceiveServer);
+                MyMessageBox.display(popexc.Message + "  " + emailAccountConfiguration.ReceiveServer + "\r\nSprawdź ustawienia uwierzytenienia TSL", MessageBoxType.Error);
+            }
+            catch (MailKit.Security.AuthenticationException ex)
+            {
+                MyMessageBox.display(ex.Message + "  " + emailAccountConfiguration.ReceiveServer, MessageBoxType.Error);
             }
 
             return 0;
