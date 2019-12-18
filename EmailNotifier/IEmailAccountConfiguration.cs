@@ -15,7 +15,7 @@ namespace EmailNotifier
         string SendPassword { get; set; }
 
 
-        ServerTypesReceive receiveServerType { get; set; }
+        ServerTypes receiveServerType { get; set; }
         string ReceiveServer { get; set; }
         int ReceivePort { get; set; }
         string ReceiveUsername { get; set; }

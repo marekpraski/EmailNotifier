@@ -34,7 +34,9 @@
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.checkForEmailsButton = new System.Windows.Forms.ToolStripButton();
             this.editButton = new System.Windows.Forms.ToolStripButton();
-            this.showEmailsButton = new System.Windows.Forms.ToolStripButton();
+            this.showNewEmailsButton = new System.Windows.Forms.ToolStripButton();
+            this.showAllEmailsButton = new System.Windows.Forms.ToolStripButton();
+            this.hideEmailsButton = new System.Windows.Forms.ToolStripButton();
             this.toolStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -51,10 +53,12 @@
             this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.checkForEmailsButton,
             this.editButton,
-            this.showEmailsButton});
+            this.showNewEmailsButton,
+            this.showAllEmailsButton,
+            this.hideEmailsButton});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(231, 25);
+            this.toolStrip1.Size = new System.Drawing.Size(214, 25);
             this.toolStrip1.TabIndex = 2;
             this.toolStrip1.Text = "toolStrip1";
             // 
@@ -66,7 +70,7 @@
             this.checkForEmailsButton.Name = "checkForEmailsButton";
             this.checkForEmailsButton.Size = new System.Drawing.Size(23, 22);
             this.checkForEmailsButton.Text = "toolStripButton1";
-            this.checkForEmailsButton.ToolTipText = "check email";
+            this.checkForEmailsButton.ToolTipText = "check for new emails on server";
             this.checkForEmailsButton.Click += new System.EventHandler(this.checkForEmailsButton_Click);
             // 
             // editButton
@@ -80,26 +84,48 @@
             this.editButton.ToolTipText = "edit or add email accounts";
             this.editButton.Click += new System.EventHandler(this.EditButton_Click);
             // 
-            // showEmailsButton
+            // showNewEmailsButton
             // 
-            this.showEmailsButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.showEmailsButton.Image = ((System.Drawing.Image)(resources.GetObject("showEmailsButton.Image")));
-            this.showEmailsButton.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.showEmailsButton.Name = "showEmailsButton";
-            this.showEmailsButton.Size = new System.Drawing.Size(23, 22);
-            this.showEmailsButton.Text = "toolStripButton1";
-            this.showEmailsButton.ToolTipText = "show emails";
-            this.showEmailsButton.Click += new System.EventHandler(this.ShowEmailsButton_Click);
+            this.showNewEmailsButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.showNewEmailsButton.Image = ((System.Drawing.Image)(resources.GetObject("showNewEmailsButton.Image")));
+            this.showNewEmailsButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.showNewEmailsButton.Name = "showNewEmailsButton";
+            this.showNewEmailsButton.Size = new System.Drawing.Size(23, 22);
+            this.showNewEmailsButton.Text = "toolStripButton1";
+            this.showNewEmailsButton.ToolTipText = "show new emails";
+            this.showNewEmailsButton.Click += new System.EventHandler(this.ShowNewEmailsButton_Click);
+            // 
+            // showAllEmailsButton
+            // 
+            this.showAllEmailsButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.showAllEmailsButton.Image = ((System.Drawing.Image)(resources.GetObject("showAllEmailsButton.Image")));
+            this.showAllEmailsButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.showAllEmailsButton.Name = "showAllEmailsButton";
+            this.showAllEmailsButton.Size = new System.Drawing.Size(23, 22);
+            this.showAllEmailsButton.Text = "show all emails";
+            this.showAllEmailsButton.Click += new System.EventHandler(this.ShowAllEmailsButton_Click);
+            // 
+            // hideEmailsButton
+            // 
+            this.hideEmailsButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.hideEmailsButton.Enabled = false;
+            this.hideEmailsButton.Image = ((System.Drawing.Image)(resources.GetObject("hideEmailsButton.Image")));
+            this.hideEmailsButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.hideEmailsButton.Name = "hideEmailsButton";
+            this.hideEmailsButton.Size = new System.Drawing.Size(23, 22);
+            this.hideEmailsButton.Text = "hide emails";
+            this.hideEmailsButton.Click += new System.EventHandler(this.HideEmailsButton_Click);
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoScroll = true;
-            this.ClientSize = new System.Drawing.Size(231, 46);
+            this.ClientSize = new System.Drawing.Size(214, 42);
             this.Controls.Add(this.toolStrip1);
             this.Name = "MainForm";
             this.Text = "Email Notifier";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
             this.Resize += new System.EventHandler(this.Form1_Resize);
             this.toolStrip1.ResumeLayout(false);
             this.toolStrip1.PerformLayout();
@@ -113,7 +139,9 @@
         private System.Windows.Forms.ToolStrip toolStrip1;
         private System.Windows.Forms.ToolStripButton checkForEmailsButton;
         private System.Windows.Forms.ToolStripButton editButton;
-        private System.Windows.Forms.ToolStripButton showEmailsButton;
+        private System.Windows.Forms.ToolStripButton showNewEmailsButton;
+        private System.Windows.Forms.ToolStripButton hideEmailsButton;
+        private System.Windows.Forms.ToolStripButton showAllEmailsButton;
     }
 }
 

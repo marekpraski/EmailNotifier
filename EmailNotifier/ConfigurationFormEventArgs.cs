@@ -8,6 +8,6 @@ namespace EmailNotifier
 {
     public class ConfigurationFormEventArgs : EventArgs
     {
-        public Dictionary<string,EmailAccount> emailAccounts { get; set; }
+        public Dictionary<string,IEmailAccountConfiguration> emailAccountConfigs { get; set; }
     }
 }

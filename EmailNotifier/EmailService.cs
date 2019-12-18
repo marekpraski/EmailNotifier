@@ -36,10 +36,10 @@ namespace EmailNotifier
             
             switch (emailAccountConfiguration.receiveServerType)
             {
-                case ServerTypesReceive.IMAP:
+                case ServerTypes.IMAP:
                     GetMessagesImap(numberOfMessagesToReceive);
                     break;
-                case ServerTypesReceive.POP3:
+                case ServerTypes.POP3:
                     GetMessagesPop3(numberOfMessagesToReceive);
                     break;
             }
@@ -59,10 +59,10 @@ namespace EmailNotifier
             DateTime newestEmailDateTime = newestEmail.messageDateTime;
             switch (emailAccountConfiguration.receiveServerType)
             {
-                case ServerTypesReceive.IMAP:
+                case ServerTypes.IMAP:
                     GetMessagesImap(newestEmailId, newestEmailDateTime);
                     break;
-                case ServerTypesReceive.POP3:
+                case ServerTypes.POP3:
                     GetMessagesPop3(newestEmailId, newestEmailDateTime);
                     break;
             }

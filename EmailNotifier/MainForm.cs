@@ -14,17 +14,21 @@ namespace EmailNotifier
 {
     public partial class MainForm : Form
     {
-
+        private TabControl emailDisplayTabControl;
+        private Label infoLabel;
         private Dictionary<string, EmailAccount> mailBoxes = new Dictionary<string, EmailAccount>();
+        private Dictionary<string, List<string>> checkedEmailsDict = new Dictionary<string, List<string>>();
 
-      
+        private EmailListType emailsDisplayed = EmailListType.none;
+
+        private enum EmailListType { newEmails, allEmails, none}
+
 
         public MainForm()
         {
             InitializeComponent();
             initialSetup();
         }
-
 
 
         private void initialSetup()
@@ -54,7 +58,7 @@ namespace EmailNotifier
 
         private void updateMailboxes(string emailDataFile)
         {
-            ConfigurationForm configForm = new ConfigurationForm(mailBoxes);
+            ConfigurationForm configForm = new ConfigurationForm(generateAccountConfigDict(mailBoxes));    //przesyłam słownik konfiguracji kont, żeby można było anulować zmiany
             configForm.saveButtonClickedEvent += configurationFormSaveButtonClicked;
             configForm.ShowDialog();
             configForm.saveButtonClickedEvent -= configurationFormSaveButtonClicked;    //likwiduję zdarzenie żeby zapobiec wyciekowi pamięci
@@ -66,13 +70,25 @@ namespace EmailNotifier
                     EmailAccount mailbox;
                     mailBoxes.TryGetValue(mailboxName, out mailbox);
 
-                    if (mailbox.emailsList.Count == 0)
+                    if (mailbox.allEmailsList.Count == 0)
                     {
                         getMessages(mailbox);       //startową liczbę maili wczytuję tylko dla nowych kont
                     }
                     saveDataToFile(emailDataFile);                    
                 }
             }
+        }
+
+        private Dictionary<string, IEmailAccountConfiguration> generateAccountConfigDict(Dictionary<string, EmailAccount> mailBoxes)
+        {
+            Dictionary<string, IEmailAccountConfiguration> accountConfigDict = new Dictionary<string, IEmailAccountConfiguration>();
+            EmailAccount account;
+            foreach(string accountName in mailBoxes.Keys)
+            {
+                mailBoxes.TryGetValue(accountName, out account);
+                accountConfigDict.Add(accountName, account.configuration);
+            }
+            return accountConfigDict;
         }
 
 
@@ -100,20 +116,44 @@ namespace EmailNotifier
         }
 
 
-
+        /// <summary>
+        /// ujednolicam słowniki kont, przechowywane w tym oknie ze słownikiem konfiguracji kont otrzymanym z okna wczytywania konfiguracji
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="args"></param>
         private void configurationFormSaveButtonClicked(object sender, ConfigurationFormEventArgs args)
         {
-           // ZROBIĆ: OBECNIE OPERACJE SĄ ROBIONE BEZPOŚREDNIO NA SŁOWNIKU, czyli "anulowanie zmian" nie istnieje
-           //przesyłać kopię słownika i rzeczywiście umożliwić zapisywanie/anulowanie zmian
+            // aktualizaję konfigurację konta, jeżeli konto jest w obu słownikach, dodaję nowe konto jeżeli go nie ma w słowniku kont a jest w słowniku konfiguracji
+            foreach (string accountName in args.emailAccountConfigs.Keys)
+            {
+                IEmailAccountConfiguration accountConfig;
+                args.emailAccountConfigs.TryGetValue(accountName, out accountConfig);
+                EmailAccount account;
+                if (mailBoxes.ContainsKey(accountName))
+                {
+                    mailBoxes.TryGetValue(accountName, out account);
+                    account.configuration = accountConfig;
+                }
+                else
+                {
+                    EmailAccount newAccount = new EmailAccount();
+                    newAccount.configuration = accountConfig;
+                    newAccount.name = accountName;
+                    mailBoxes.Add(accountName, newAccount);
+                }
+            }
 
-            //foreach (EmailAccount account in args.emailAccounts)
-            //{
-            //    if (mailBoxes.ContainsKey(account.name))
-            //    {
-            //        throw new InvalidEmailAccountException("konto " + account.name + " już istnieje");
-            //    }
-            //    mailBoxes.Add(account.name, account);
-            //}
+            // usuwam konto które jest w słowniku kont a nie ma go w słowniku konfiguracji
+            string[] oldAccountNames = new string[mailBoxes.Keys.Count];
+            mailBoxes.Keys.CopyTo(oldAccountNames,0);
+            foreach(string accountName in oldAccountNames)
+            {
+                if (!args.emailAccountConfigs.ContainsKey(accountName))
+                {
+                    mailBoxes.Remove(accountName);
+                }
+            }
+
         }
 
 
@@ -133,23 +173,117 @@ namespace EmailNotifier
             {
                 EmailAccount mailbox;
                 mailBoxes.TryGetValue(mailboxName, out mailbox);
-                IEmailMessage newestEmail = mailbox.hasNewEmails ? mailbox.newEmailsList.First.Value : mailbox.emailsList.First.Value;
+                IEmailMessage newestEmail = mailbox.hasNewEmails ? mailbox.newEmailsList.First.Value : mailbox.allEmailsList.First.Value;
 
                 getMessages(mailbox, newestEmail);
                 saveDataToFile(ProgramSettings.fileSavePath + ProgramSettings.emailDataFileName);
+                this.emailsDisplayed = EmailListType.newEmails;
                 displayMessages();
             }
         }
 
 
-        private void ShowEmailsButton_Click(object sender, EventArgs e)
+        private void ShowNewEmailsButton_Click(object sender, EventArgs e)
         {
+            emailsDisplayed = EmailListType.newEmails;
             displayMessages();
+            hideEmailsButton.Enabled = true;
+            showNewEmailsButton.Enabled = false;
+            showAllEmailsButton.Enabled = false;
+        }
+
+
+        private void ShowAllEmailsButton_Click(object sender, EventArgs e)
+        {
+            emailsDisplayed = EmailListType.allEmails;
+            displayMessages();
+            hideEmailsButton.Enabled = true;
+            showNewEmailsButton.Enabled = false;
+            showAllEmailsButton.Enabled = false;
+        }
+
+
+        private void HideEmailsButton_Click(object sender, EventArgs e)
+        {
+            closeEmailsDisplayWindow();
+            emailsDisplayed = EmailListType.none;
+        }
+
+        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            closeEmailsDisplayWindow();
+        }
+
+
+        #endregion
+
+
+        /// <summary>
+        /// zamyka okno wyświetlania emaili, aktualizując nowe emaile w razie potrzeby i zapisując zmiany na dysk
+        /// </summary>
+        private void closeEmailsDisplayWindow()
+        {
+            //wychwytuję zaznaczone emaile w każdej zakładce, ale tylko wtedy gdy wyświetlona była lista nowych maili
+            if (emailsDisplayed == EmailListType.newEmails)
+            {
+                Control.ControlCollection tabControlContent = emailDisplayTabControl.Controls;
+                checkedEmailsDict.Clear();
+                int numberOfCheckedEmails = 0;                  //jeżeli zero, to nie wywołuję funkcji aktualizacji
+                foreach (Control c in tabControlContent)
+                {
+                    TabPage page = c as TabPage;
+                    string accountName = page.Text;
+                    Control.ControlCollection tabPageContent = page.Controls;
+                    ListView emailsDisplay = tabPageContent[0] as ListView;             //każdy tab zawiera tylko jedną listę
+                    ListView.CheckedListViewItemCollection checkedEmails = emailsDisplay.CheckedItems;
+                    List<string> checkedEmailsIDs = new List<string>();
+                    foreach (ListViewItem item in checkedEmails)
+                    {
+                        checkedEmailsIDs.Add(item.Name);
+                    }
+                    checkedEmailsDict.Add(accountName, checkedEmailsIDs);
+                    numberOfCheckedEmails += checkedEmailsIDs.Count;
+                }
+                if (numberOfCheckedEmails > 0)
+                {                                                   //aktualizuję słownik i zapisuję zmiany na dysk
+                    updateNewEmailsDict();
+                    saveDataToFile(ProgramSettings.fileSavePath + ProgramSettings.emailDataFileName);
+                }
+            }
+
+
+            //dopiero po wychwyceniu zaznaczonych emaili zamykam okno
+            emailDisplayTabControl.Dispose();
+            infoLabel.Dispose();
+            this.Width = 230;
+            this.Height = 80;
+            hideEmailsButton.Enabled = false;
+            showNewEmailsButton.Enabled = true;
+            showAllEmailsButton.Enabled = true;
         }
 
 
 
-        #endregion
+        /// <summary>
+        /// usuwa maile zaznaczone przez użytkownika ze słownika nowych maili
+        /// </summary>
+        private void updateNewEmailsDict()
+        {
+            EmailAccount account = null;
+            List<string> emailIds = null;
+            foreach(string accountName in checkedEmailsDict.Keys)
+            {
+                mailBoxes.TryGetValue(accountName, out account);
+                checkedEmailsDict.TryGetValue(accountName, out emailIds);
+                foreach(string emailId in emailIds)
+                {
+                    account.removeNewEmail(emailId);
+                }
+            }   
+        }
+
+
+
 
 
         /// <summary>
@@ -225,22 +359,17 @@ namespace EmailNotifier
             int listviewWidth = 1000 + 10;          //suma szerokości kolumn + 10 jako margines
 
             int messagePacketHeight;
-            int emailNumber = 0;
+            int emailNumber;
 
             this.SuspendLayout();
 
-            TabControl tabControl = new TabControl();
-            tabControl.SuspendLayout();
-            tabControl.Location = new System.Drawing.Point(0, 30);
-            tabControl.Anchor = (AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left);
-            tabControl.SelectedIndex = 0;
-            tabControl.Size = new System.Drawing.Size(750, 50);
-            this.Controls.Add(tabControl);
-
+            addInfoLabel();
+            addTabControl();
 
             foreach (string mailboxName in mailBoxes.Keys)
             {
                 messagePacketHeight = 0;
+                emailNumber = 0;
                 TabPage tabPage = generateBlankTabPage();
                 tabPage.Text = mailboxName;
 
@@ -248,13 +377,26 @@ namespace EmailNotifier
 
                 EmailAccount mailbox;
                 mailBoxes.TryGetValue(mailboxName, out mailbox);
+                LinkedList<IEmailMessage> emailsList = null;
 
-                foreach (var emailMessage in mailbox.newEmailsList)
+                switch (this.emailsDisplayed)
+                {
+                    case EmailListType.allEmails:
+                        emailsList = mailbox.allEmailsList;
+                        break;
+                    case EmailListType.newEmails:
+                        emailsList = mailbox.newEmailsList;
+                        break;
+                }
+
+
+                foreach (var emailMessage in emailsList)
                 {
                     string[] emailDataRow = new string[] { emailMessage.messageDateTime.ToString(), emailMessage.FromAddress, emailMessage.Subject };
 
-                    ListViewItem listvieRow = new ListViewItem(emailDataRow);
-                    listView.Items.Add(listvieRow);
+                    ListViewItem listRow = new ListViewItem(emailDataRow);
+                    listRow.Name = emailMessage.messageId;
+                    listView.Items.Add(listRow);
 
                     messagePacketHeight += emailNumber * 10;        //liczę mnożąc liczbę wierszy przez wysokość jednego wiersza
                     emailNumber++;
@@ -269,17 +411,53 @@ namespace EmailNotifier
                 tabPage.Height = tabPage.Height > maxTabPageHeigth ? maxTabPageHeigth : tabPage.Height;     //korekta wysokości tabPage, żeby nie przekraczała max
                 maxActualTabPageHeigth = maxActualTabPageHeigth > tabPage.Height ? maxActualTabPageHeigth : tabPage.Height;
 
-                tabControl.Controls.Add(tabPage);
+                emailDisplayTabControl.Controls.Add(tabPage);
                 tabPage.ResumeLayout();
             }
-            tabControl.Height = maxActualTabPageHeigth + 10;
-            tabControl.Width = listviewWidth + 10;
-            tabControl.ResumeLayout();
+            emailDisplayTabControl.Height = maxActualTabPageHeigth + 10;
+            emailDisplayTabControl.Width = listviewWidth + 10;
+            emailDisplayTabControl.ResumeLayout();
 
-            this.Height = tabControl.Height + 50;
-            this.Width = tabControl.Width + 30;
+            this.Height = emailDisplayTabControl.Height + 130;
+            this.Width = emailDisplayTabControl.Width + 30;
             this.ResumeLayout();
             this.Refresh();
+        }
+
+
+        private void addTabControl()
+        {
+            emailDisplayTabControl = new TabControl();
+            emailDisplayTabControl.SuspendLayout();
+            emailDisplayTabControl.Location = new System.Drawing.Point(0, 30);
+            emailDisplayTabControl.Anchor = (AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left);
+            emailDisplayTabControl.SelectedIndex = 0;
+            emailDisplayTabControl.Size = new System.Drawing.Size(750, 50);
+            this.Controls.Add(emailDisplayTabControl);
+        }
+
+
+        private void addInfoLabel()
+        {
+            infoLabel = new Label();
+            infoLabel.AutoSize = true;
+            infoLabel.Location = new System.Drawing.Point(200, 20);
+            infoLabel.Size = new System.Drawing.Size(35, 13);
+            infoLabel.BackColor = System.Drawing.SystemColors.Control;
+            infoLabel.Font = new System.Drawing.Font("Arial", 15);
+            infoLabel.ForeColor = System.Drawing.Color.Black;
+            infoLabel.BringToFront();
+
+            switch (this.emailsDisplayed)
+            {
+                case EmailListType.allEmails:
+                    infoLabel.Text = "all emails";
+                    break;
+                case EmailListType.newEmails:
+                    infoLabel.Text = "new emails";
+                    break;
+            }
+            this.Controls.Add(infoLabel);
         }
 
         private ListView generateBlankListview(int listviewWidth)

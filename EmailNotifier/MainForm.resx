@@ -1355,13 +1355,26 @@
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
         YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAADDSURBVDhPYyAJND5yZ6h/fI+h8cl/hvpHRxjqnytAZYgA
-        9U/8GOrvf2FoepLA0PpCHGjIDLAhRAGYZjAGskEAYsh/MBsvgGsG0UhskEtA3sELkDXAAFwMiEFhghNg
+        9U/8GOrvfGFoepLA0PpCHGjIDLAhRAGYZjAGskEAYsh/MBsvgGsG0UhskEtA3sELkDXAAFwMiEFhghNg
         0wwCuMRRwKhmBCBK8///jAyN91+DccPjWKgokZpBoP6RDlDROyD2ASaMF2BDiNYMAo1Pc4AaN4DZIENA
-        LiFaMwg0Pl4BTNMHgRq2AOn3YFcQrRkE6p9cgBqSwVD/VAMqSiRgYAAA04TATdA2hcgAAAAASUVORK5C
+        LiFaMwg0Pl4BTNMHgRq2AOn3YFcQrRkE6p9cgBqSwVD/VAMqSiRgYAAANrLACOlKUp4AAAAASUVORK5C
         YII=
 </value>
   </data>
-  <data name="showEmailsButton.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+  <data name="showNewEmailsButton.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAF/SURBVDhPY8AHDgsLz9sjJjYNyiUKMNrb2ws4Ozvr7hcR
+        efqfgeE/CF/g53+TamJiCpKDqsMOgAokYJpwYVdXV26ocgT4x8AgvEROrgWm6PatO/+fPnmGgWHyGyUl
+        e4E0E1gz0FaNRxwcX94zM/+9Y2H5EaQAWTEMw8T2V1c/vM/B8fsdK+v3AiMjI4YfjIz/t8fE/H/x8BFc
+        EYi+dfM2Cn7/7gNY7sP7j/9fvHj5/3BAAJgPhBAbLufk/H/y+CncAJg4DMPEYAbBMMMfIHGoqgpFEGQQ
+        yCZkjKzxCyvr/yOdXWA2w28gAVOwZ94CuKLDvX1gMWSN7zk5/++dPff/+1dvwHrABvwFEh+gAmCD3r7/
+        f7a4BK4JhEE27pkzD2wYTB3cAGAU/v/w5h2KBAiDFB9raf1/YMo0uI3oGGEAFkliMHUMAIfB67f/P4D8
+        h+4VYHiAMbIYEgYbACIoweDkDAJAFg/QO6pALAbE3EAsAxRjAWJGIGYD0VClSICBAQARiVNZAaj0bAAA
+        AABJRU5ErkJggg==
+</value>
+  </data>
+  <data name="showAllEmailsButton.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
         YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAADxSURBVDhPzZIxDoJAEEWxtrH0CDaegQDhCJZyJ8IB6IFO
@@ -1369,6 +1382,14 @@
         Od/IhuCBU2nvF7/E65YwFecLq6vrBzIEnvdn8a0L+bpNHMcFTJpZQVqWZkd4MYNZbH6GYcia5qZMeJ5P
         RY/23om7rn0IbxRF4owA0eT5nlVlrQJIJ0ijIEIEJEnaExGETTr6YLAO2HazE70IIAOJAD000yA0zEBT
         AfomPcg0SBgDCAoyDRKDAWP4o4BfkD/0t2VZLyPgN4AndhsGAAAAAElFTkSuQmCC
+</value>
+  </data>
+  <data name="hideEmailsButton.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABrSURBVDhPrZNLDsAgCEQ9GweuR7PdsKXSxKbRET/U5C2E
+        mbcj5CdO4HAeZhYPj4CItmgE8YhypstEM1BQFpbkm2kEdcAq6x8KULA36wrqAiorpkApRVRWhoIR/wt2
+        eAUe8j2AA1kDDicJcgPC2J1HVHUxWAAAAABJRU5ErkJggg==
 </value>
   </data>
 </root>

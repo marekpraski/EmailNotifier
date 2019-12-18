@@ -10,20 +10,20 @@ namespace EmailNotifier
     public class EmailAccount
     {
         public string name { get; set; }
-        public LinkedList<IEmailMessage> emailsList { get; set; }
+        public LinkedList<IEmailMessage> allEmailsList { get; set; }
         public LinkedList<IEmailMessage> newEmailsList { get; set; }
         public IEmailAccountConfiguration configuration { get; set; }
         public bool hasNewEmails { get; set; }
 
         public EmailAccount()
         {
-            emailsList = new LinkedList<IEmailMessage>();
+            allEmailsList = new LinkedList<IEmailMessage>();
             newEmailsList = new LinkedList<IEmailMessage>();
         }
 
         public void addEmail(IEmailMessage email)
         {
-                emailsList.AddFirst(email);
+                allEmailsList.AddFirst(email);
                 newEmailsList.AddFirst(email);
                 hasNewEmails = true;
         }
@@ -50,5 +50,27 @@ namespace EmailNotifier
                 }
             }
         }
+
+
+
+        public bool removeNewEmail(string emailId)
+        {
+            bool emailFound = false;
+            int i = 0;
+            do
+            {
+                IEmailMessage email = newEmailsList.ElementAt(i);
+                if(email.messageId == emailId)
+                {
+                    newEmailsList.Remove(email);
+                    emailFound = true;
+                }
+                i++;
+            }
+            while (!emailFound);
+            return emailFound;
+        }
+
+
     }
 }

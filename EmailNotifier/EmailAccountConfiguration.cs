@@ -6,7 +6,7 @@ namespace EmailNotifier
     [Serializable]
     public class EmailAccountConfiguration : IEmailAccountConfiguration
     {
-        public ServerTypesReceive receiveServerType { get; set; }
+        public ServerTypes receiveServerType { get; set; }
         public string SendServer { get; set; }
         public int SendPort { get; set; }
         public string SendUsername { get; set; }

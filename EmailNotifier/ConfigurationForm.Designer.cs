@@ -31,8 +31,9 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ConfigurationForm));
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.addNewAccountButton = new System.Windows.Forms.ToolStripButton();
-            this.saveButton = new System.Windows.Forms.ToolStripButton();
             this.deleteAccountButton = new System.Windows.Forms.ToolStripButton();
+            this.saveButton = new System.Windows.Forms.ToolStripButton();
+            this.cancelChangesButton = new System.Windows.Forms.ToolStripButton();
             this.toolStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -41,7 +42,8 @@
             this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.addNewAccountButton,
             this.deleteAccountButton,
-            this.saveButton});
+            this.saveButton,
+            this.cancelChangesButton});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.Size = new System.Drawing.Size(391, 25);
@@ -58,6 +60,16 @@
             this.addNewAccountButton.Text = "dodaj nowe konto pocztowe";
             this.addNewAccountButton.Click += new System.EventHandler(this.AddNewAccountButton_Click);
             // 
+            // deleteAccountButton
+            // 
+            this.deleteAccountButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.deleteAccountButton.Image = ((System.Drawing.Image)(resources.GetObject("deleteAccountButton.Image")));
+            this.deleteAccountButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.deleteAccountButton.Name = "deleteAccountButton";
+            this.deleteAccountButton.Size = new System.Drawing.Size(23, 22);
+            this.deleteAccountButton.Text = "usuń konto";
+            this.deleteAccountButton.Click += new System.EventHandler(this.DeleteAccountButton_Click);
+            // 
             // saveButton
             // 
             this.saveButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
@@ -68,15 +80,15 @@
             this.saveButton.Text = "zapisz ustawienia i zamknij okno";
             this.saveButton.Click += new System.EventHandler(this.saveButton_Click);
             // 
-            // deleteAccountButton
+            // cancelChangesButton
             // 
-            this.deleteAccountButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.deleteAccountButton.Image = ((System.Drawing.Image)(resources.GetObject("deleteAccountButton.Image")));
-            this.deleteAccountButton.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.deleteAccountButton.Name = "deleteAccountButton";
-            this.deleteAccountButton.Size = new System.Drawing.Size(23, 22);
-            this.deleteAccountButton.Text = "usuń konto";
-            this.deleteAccountButton.Click += new System.EventHandler(this.DeleteAccountButton_Click);
+            this.cancelChangesButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.cancelChangesButton.Image = ((System.Drawing.Image)(resources.GetObject("cancelChangesButton.Image")));
+            this.cancelChangesButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.cancelChangesButton.Name = "cancelChangesButton";
+            this.cancelChangesButton.Size = new System.Drawing.Size(23, 22);
+            this.cancelChangesButton.Text = "cancel changes";
+            this.cancelChangesButton.Click += new System.EventHandler(this.CancelChangesButton_Click);
             // 
             // ConfigurationForm
             // 
@@ -99,5 +111,6 @@
         private System.Windows.Forms.ToolStripButton addNewAccountButton;
         private System.Windows.Forms.ToolStripButton saveButton;
         private System.Windows.Forms.ToolStripButton deleteAccountButton;
+        private System.Windows.Forms.ToolStripButton cancelChangesButton;
     }
 }

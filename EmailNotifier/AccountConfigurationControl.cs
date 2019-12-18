@@ -13,10 +13,10 @@ namespace EmailNotifier
     public partial class AccountConfigurationControl : UserControl
     {
         private string[] authorisationChoices = { "tak", "nie" };
-        private readonly Dictionary<string, EmailAccount> emailAccounts = new Dictionary<string, EmailAccount>();
-        public AccountConfigurationControl(Dictionary<string, EmailAccount> emailAccounts)
+        private readonly Dictionary<string, IEmailAccountConfiguration> emailAccountConfigs = new Dictionary<string, IEmailAccountConfiguration>();
+        public AccountConfigurationControl(Dictionary<string, IEmailAccountConfiguration> emailAccountConfigs)
         {
-            this.emailAccounts = emailAccounts;
+            this.emailAccountConfigs = emailAccountConfigs;
             InitializeComponent();
             populateAuthorisationCombo();
             populateAccountNamesCombo();
@@ -27,14 +27,14 @@ namespace EmailNotifier
         private void AccountNameComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
             string accountName = accountNameComboBox.Text;
-            EmailAccount account;
-            emailAccounts.TryGetValue(accountName, out account);
+            IEmailAccountConfiguration accountConfig;
+            emailAccountConfigs.TryGetValue(accountName, out accountConfig);
 
-            serverNameTextBox.Text = account.configuration.ReceiveServer;
-            portTextBox.Text = account.configuration.ReceivePort.ToString();
-            userNameTextBox.Text = account.configuration.ReceiveUsername;
-            passwordTextBox.Text = account.configuration.ReceivePassword;
-            authorisationComboBox.SelectedIndex = account.configuration.ReceiveUseAuthorisation == true ? 0 : 1;
+            serverNameTextBox.Text = accountConfig.ReceiveServer;
+            portTextBox.Text = accountConfig.ReceivePort.ToString();
+            userNameTextBox.Text = accountConfig.ReceiveUsername;
+            passwordTextBox.Text = accountConfig.ReceivePassword;
+            authorisationComboBox.SelectedIndex = accountConfig.ReceiveUseAuthorisation == true ? 0 : 1;
         }
 
         #endregion
@@ -42,7 +42,7 @@ namespace EmailNotifier
 
         private void populateAccountNamesCombo()
         {
-            accountNameComboBox.DataSource = emailAccounts.Keys.ToList();
+            accountNameComboBox.DataSource = emailAccountConfigs.Keys.ToList();
         }
 
         private void populateAuthorisationCombo()

@@ -124,19 +124,17 @@
   <data name="addNewAccountButton.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
-        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABJSURBVDhPY8AFvn379h8ZQ4WJByBNFl0mYDxqAAEDQJK4
-        MLIBuDCKTaRi6hmACyMrxIWhIYEJQJIoNpEKRg2AGICMocJogIEBAGjJTpCriTUXAAAAAElFTkSuQmCC
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAB0SURBVDhPxZLBDoAwCEP3UR4883l+MNcZCOjEgppobPK2
+        ZKU9kDVm7ogWhGYENYjogBpB6Zwbcj/hVsG8TAry3i3IqAocWxHeclVgsV3y6IErviuIjIGIxXDQqQoc
+        Lfj/H2QFFaeCETWC0jk5EJbbhGaYua910OS/StmORgAAAABJRU5ErkJggg==
 </value>
   </data>
   <data name="deleteAccountButton.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
-        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAEtSURBVDhPlZKtboRAFIV5gb5Gn2E1uqDxVGMaDJIEzwNg
-        qihy0wbVkFTiEMglqKZZUDXYab7bXDLd7XbpJIf7f+bcCY7v+2aaJgH+aexcOzS+PdwL8N+Hg9nf7db4
-        Ksnn8UMGHm9vZEh97CaCOI6NTaLDKNm0Ak0qWwk2y+fYw1j1//0GAF9jCJZlEXRdZ9I0XWMbDp999SRw
-        XVeSry/PJggCiYHneaYoCqlpTnuFQAPQNI0M5Hlu2rYVZFkmhOS071cCpNLIADdCRA1blqX4vMtFgnEc
-        xedWhlADURRFZp5nqfV9f5mAohJgGUJ2GIZSQ92fCijq/jQzmCSJ5HQN+zHPCIDujmUFcihS6YozAgXx
-        6QOixt7d7pWfCcdGVVXrrmAYBlPX9Y+ebyzmCwJDX1BUDT4PAAAAAElFTkSuQmCC
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAB4SURBVDhPzZJRDoAgDEN3Nu5/HfalIl02hTlMiCba5ElG
+        134QiZlLBDlFO0CMlFKHGE7DPTNwzvCzgifoE8WvnHO+3BkaO4XLhahslVVPzACzgfm2oDpdwArbomHB
+        DBqbD3qk4Pv/4JWCFjGchnv4RGjuULTDzGUHJUEEFsx0FyAAAAAASUVORK5CYII=
 </value>
   </data>
   <data name="saveButton.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
@@ -145,6 +143,15 @@
         YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABoSURBVDhPY/j27dt/SjDYAO2CNf8ZgueQhEF64AZgU0AM
         xjDgw/uPROHhbACpeJAagM3PyBhZLW0NQOeji4Mw3IDi+ccwNKDz0cVBGG4AsiHoCpE1I4uDMNgAEIAZ
         AsIgRch8/PjbfwCHZu6f2U/urwAAAABJRU5ErkJggg==
+</value>
+  </data>
+  <data name="cancelChangesButton.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAADASURBVDhPY0AGX758MYAycQKcar59+1YBxP+/fv2aCRXC
+        ACA5kBqQWqgQBIAEXt28+n9bpPv/t/fvYDUEJAaS2xLi8P/5xbMIQ0BOApkK0rxQjff/WmddDENgmkFy
+        IDUgQ0B64N5BV4BsCD45sGYYwKWQKM0wgM0QojXDALohJGkGAYoMQNcMopHZeA3BphnExyaGYQguzSBx
+        fHJgzVRJSKBkSXZShgGQAMhUbJphACQHUoOhGQZwZlUkgKqGgQEAg/y4yrtoVa4AAAAASUVORK5CYII=
 </value>
   </data>
 </root>

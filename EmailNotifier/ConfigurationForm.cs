@@ -15,8 +15,7 @@ namespace EmailNotifier
         public delegate void saveButtonClickedEventHandler(object sender, ConfigurationFormEventArgs args);
         public event saveButtonClickedEventHandler saveButtonClickedEvent;
 
-        private readonly Dictionary<string, EmailAccount> emailAccounts = new Dictionary<string, EmailAccount>();
-        private readonly List<EmailAccount> emailAccountsList = new List<EmailAccount>();
+        private readonly Dictionary<string, IEmailAccountConfiguration> emailAccountConfigurations = new Dictionary<string, IEmailAccountConfiguration>();
 
         private AccountConfigurationControl accountConfigurationControl;
 
@@ -25,9 +24,9 @@ namespace EmailNotifier
             InitializeComponent();
         }
 
-        public ConfigurationForm(Dictionary<string, EmailAccount> emailAccounts)
+        public ConfigurationForm(Dictionary<string, IEmailAccountConfiguration> emailAccountConfigs)
         {
-            this.emailAccounts = emailAccounts;
+            this.emailAccountConfigurations = emailAccountConfigs;
             InitializeComponent();
             setupAccountConfigurationControl();
         }
@@ -48,7 +47,7 @@ namespace EmailNotifier
             if(result == MyMessageBoxResults.Yes)
             {
                 string accountName = accountConfigurationControl.getAccountName();
-                emailAccounts.Remove(accountName);
+                emailAccountConfigurations.Remove(accountName);
                 accountConfigurationControl.Clear();
             }
         }
@@ -60,10 +59,10 @@ namespace EmailNotifier
             {
                 if (saveButtonClickedEvent != null)
                 {
-                    if (addOrUpdateAccountConfiguration() || emailAccounts.Count > 0)
+                    if (addOrUpdateAccountConfiguration() || emailAccountConfigurations.Count > 0)
                     {
                         ConfigurationFormEventArgs args = new ConfigurationFormEventArgs();
-                        args.emailAccounts = this.emailAccounts;
+                        args.emailAccountConfigs = this.emailAccountConfigurations;
                         saveButtonClickedEvent(this, args);
                     }
                 }
@@ -77,13 +76,18 @@ namespace EmailNotifier
             }
         }
 
+        private void CancelChangesButton_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
+
         #endregion
 
 
 
         private void setupAccountConfigurationControl()
         {
-            this.accountConfigurationControl = new AccountConfigurationControl(emailAccounts);
+            this.accountConfigurationControl = new AccountConfigurationControl(emailAccountConfigurations);
             this.accountConfigurationControl.Location = new System.Drawing.Point(12, 28);
             this.accountConfigurationControl.Name = "accountConfiguration1";
             this.accountConfigurationControl.Size = new System.Drawing.Size(369, 149);
@@ -96,41 +100,34 @@ namespace EmailNotifier
 
         private bool addOrUpdateAccountConfiguration()
         {
-            EmailAccount account;
+            IEmailAccountConfiguration accountConfig;
             string accountName = accountConfigurationControl.getAccountName();
-            if (emailAccounts.ContainsKey(accountName))
+            if (emailAccountConfigurations.ContainsKey(accountName))
             {
-                emailAccounts.TryGetValue(accountName, out account);
-                IEmailAccountConfiguration emailConfig = account.configuration;
-                setAccountParameters(account, emailConfig);
+                emailAccountConfigurations.TryGetValue(accountName, out accountConfig);
+                setAccountParameters(accountConfig);
                 return true;
             }
 
             if (accountName != "" && accountName != null)
             {
-                account = new EmailAccount();
-                account.name = accountName;
-                IEmailAccountConfiguration emailConfig = new EmailAccountConfiguration();
-                setAccountParameters(account, emailConfig);
-
-                emailAccounts.Add(accountName, account);
+                accountConfig = new EmailAccountConfiguration();
+                setAccountParameters(accountConfig);
+                emailAccountConfigurations.Add(accountName, accountConfig);
 
                 return true;
             }
             return false;
         }
 
-        private void setAccountParameters(EmailAccount account, IEmailAccountConfiguration emailConfig)
+        private void setAccountParameters(IEmailAccountConfiguration emailConfig)
         {
             emailConfig.ReceivePassword = accountConfigurationControl.getPassword();
             emailConfig.ReceivePort = accountConfigurationControl.getPort();
             emailConfig.ReceiveServer = accountConfigurationControl.getServerName();
             emailConfig.ReceiveUsername = accountConfigurationControl.getUserName();
             emailConfig.ReceiveUseAuthorisation = accountConfigurationControl.getAuthorisation();
-            account.configuration = emailConfig;
         }
-
-
 
     }
 }
