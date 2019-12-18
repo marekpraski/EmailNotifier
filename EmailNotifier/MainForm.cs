@@ -9,6 +9,7 @@ using System.IO.Compression;
 using System.Windows.Forms;
 using System.Net.Mail;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Threading.Tasks;
 
 namespace EmailNotifier
 {
@@ -43,8 +44,7 @@ namespace EmailNotifier
         private void setupMailboxes()
         {
             string emailDataFile = ProgramSettings.fileSavePath + ProgramSettings.emailDataFileName;
-            FileManipulator fm = new FileManipulator();
-            if (fm.assertFileExists(emailDataFile))
+            if (File.Exists(emailDataFile))
             {                
                 readDataFromFile(emailDataFile);                              
             }
@@ -59,9 +59,9 @@ namespace EmailNotifier
         private void updateMailboxes(string emailDataFile)
         {
             ConfigurationForm configForm = new ConfigurationForm(generateAccountConfigurationsDict(mailBoxes));    //przesyłam słownik konfiguracji kont, żeby można było anulować zmiany
-            configForm.saveButtonClickedEvent += configurationFormSaveButtonClicked;
+            configForm.saveButtonClickedEvent += configurationFormSaveButtonClickedAsync;
             configForm.ShowDialog();
-            configForm.saveButtonClickedEvent -= configurationFormSaveButtonClicked;    //likwiduję zdarzenie żeby zapobiec wyciekowi pamięci
+            configForm.saveButtonClickedEvent -= configurationFormSaveButtonClickedAsync;    //likwiduję zdarzenie żeby zapobiec wyciekowi pamięci
         }
 
 
@@ -107,8 +107,11 @@ namespace EmailNotifier
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="args"></param>
-        private void configurationFormSaveButtonClicked(object sender, ConfigurationFormEventArgs args)
+        private async void configurationFormSaveButtonClickedAsync(object sender, ConfigurationFormEventArgs args)
         {
+            Form form = sender as Form;
+            form.Hide();
+
             // aktualizaję konfigurację konta, jeżeli to konto jest w obu słownikach; 
             //dodaję nowe konto jeżeli go nie ma w słowniku kont a jest w słowniku otrzymanym z okna konfiguracji
             foreach (string accountName in args.emailAccountConfigs.Keys)
@@ -132,8 +135,8 @@ namespace EmailNotifier
 
             // usuwam konto które jest w słowniku kont a nie ma go w słowniku otrzymanym z okna konfiguracji
             string[] oldAccountNames = new string[mailBoxes.Keys.Count];
-            mailBoxes.Keys.CopyTo(oldAccountNames,0);
-            foreach(string accountName in oldAccountNames)
+            mailBoxes.Keys.CopyTo(oldAccountNames, 0);
+            foreach (string accountName in oldAccountNames)
             {
                 if (!args.emailAccountConfigs.ContainsKey(accountName))
                 {
@@ -141,22 +144,36 @@ namespace EmailNotifier
                 }
             }
 
-            //dla nowych kont wczytuję startową liczbę maili 
-            if (this.mailBoxes.Count > 0)
-            {
-                foreach (string mailboxName in this.mailBoxes.Keys)
-                {
-                    EmailAccount mailbox;
-                    mailBoxes.TryGetValue(mailboxName, out mailbox);
+            await initialAccountSetupAsync();
+            form.Close();
 
-                    if (mailbox.allEmailsList.Count == 0)
+        }
+
+        private async Task initialAccountSetupAsync()
+        {
+            try
+            {
+                //dla nowych kont wczytuję startową liczbę maili 
+                if (this.mailBoxes.Count > 0)
+                {
+                    foreach (string mailboxName in this.mailBoxes.Keys)
                     {
-                        getMessages(mailbox);       
+                        EmailAccount mailbox;
+                        mailBoxes.TryGetValue(mailboxName, out mailbox);
+
+                        if (mailbox.allEmailsList.Count == 0)
+                        {
+                            await getMessagesAsync(mailbox);
+                        }
+                    
+                        saveDataToFile(ProgramSettings.fileSavePath + ProgramSettings.emailDataFileName);                  
                     }
-                    saveDataToFile(ProgramSettings.fileSavePath + ProgramSettings.emailDataFileName);
                 }
             }
-
+            catch (FileNotFoundException ex)
+            {
+                MyMessageBox.display(ex.Message, MessageBoxType.Error);
+            }
         }
 
 
@@ -172,6 +189,8 @@ namespace EmailNotifier
 
         private void checkForEmailsButton_Click(object sender, EventArgs e)
         {
+            try
+            {
             foreach (string mailboxName in this.mailBoxes.Keys)
             {
                 EmailAccount mailbox;
@@ -182,6 +201,12 @@ namespace EmailNotifier
                 saveDataToFile(ProgramSettings.fileSavePath + ProgramSettings.emailDataFileName);
                 this.emailsDisplayed = EmailListType.newEmails;
                 displayMessages();
+            }
+
+            }
+            catch (FileNotFoundException exc)
+            {
+                MyMessageBox.display(exc.Message, MessageBoxType.Error);
             }
         }
 
@@ -248,10 +273,18 @@ namespace EmailNotifier
                     numberOfCheckedEmails += checkedEmailsIDs.Count;
                 }
                 if (numberOfCheckedEmails > 0)
-                {                                                   //aktualizuję słownik i zapisuję zmiany na dysk
-                    updateNewEmailsDict();
-                    saveDataToFile(ProgramSettings.fileSavePath + ProgramSettings.emailDataFileName);
-                }
+                    try
+                    {
+                        {                                                   //aktualizuję słownik i zapisuję zmiany na dysk
+                            updateNewEmailsDict();
+                            saveDataToFile(ProgramSettings.fileSavePath + ProgramSettings.emailDataFileName);
+                        }
+
+                    }
+                    catch (FileNotFoundException exc)
+                    {
+                        MyMessageBox.display(exc.Message, MessageBoxType.Error);
+                    }
             }
 
 
@@ -327,6 +360,11 @@ namespace EmailNotifier
        /// <param name="fileName"></param>
         private void saveDataToFile(string fileName)
         {
+
+            if (!File.Exists(fileName))
+            {
+                throw new FileNotFoundException("nie można zapisać danych do pliku. Sprawdź podaną ścieżkę");
+            }
             using (FileStream fileStream = new FileStream(fileName, FileMode.Create))
             {
                 MemoryStream serializedMemoryStream = new MemoryStream();
@@ -347,6 +385,7 @@ namespace EmailNotifier
                 serializedMemoryStream.Close();
                 compressedStream.Close();
             }
+            
         }
 
 
@@ -444,7 +483,7 @@ namespace EmailNotifier
         {
             infoLabel = new Label();
             infoLabel.AutoSize = true;
-            infoLabel.Location = new System.Drawing.Point(200, 20);
+            infoLabel.Location = new System.Drawing.Point(200, 10);
             infoLabel.Size = new System.Drawing.Size(35, 13);
             infoLabel.BackColor = System.Drawing.SystemColors.Control;
             infoLabel.Font = new System.Drawing.Font("Arial", 15);
@@ -457,7 +496,7 @@ namespace EmailNotifier
                     infoLabel.Text = "all emails";
                     break;
                 case EmailListType.newEmails:
-                    infoLabel.Text = "new emails";
+                    infoLabel.Text = "new emails - check emails to mark as read";
                     break;
             }
             this.Controls.Add(infoLabel);
@@ -507,12 +546,13 @@ namespace EmailNotifier
             return tabPage;
         }
 
-        private void getMessages(EmailAccount mailbox, int numberOfMessages=4)
+        private async Task getMessagesAsync(EmailAccount mailbox, int numberOfMessages=4)
         {
 
             IEmailAccountConfiguration emailConfiguration = mailbox.configuration;
             EmailService emailService = new EmailService(emailConfiguration);
-            mailbox.addEmail(emailService.ReceiveEmails(numberOfMessages));
+            LinkedList<IEmailMessage> messages = await emailService.ReceiveEmailsAsync(numberOfMessages);
+            mailbox.addEmail(messages);
 
         }
 

@@ -11,9 +11,9 @@ namespace EmailNotifier
         public static string emailDataFileName = "emailNotifierData.bin";
 
 #if DEBUG
-        public static string fileSavePath = @"C:\testDesktop\conf\";
+        public static string fileSavePath = @"C:\testDesktop\conf1\";
 #else
-         public static string currentPath = Application.StartupPath;
+         public static string fileSavePath = @"\data\";     //tzn katalog data pod katalogiem, z którego skąd aplikacja jest uruchamiana
 #endif
 
     }

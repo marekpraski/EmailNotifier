@@ -66,7 +66,6 @@ namespace EmailNotifier
                         saveButtonClickedEvent(this, args);
                     }
                 }
-                this.Close();
 
             }
             catch (InvalidEmailAccountException ex)

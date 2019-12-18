@@ -4,7 +4,7 @@ using MimeKit;
 using MimeKit.Text;
 using System;
 using System.Collections.Generic;
-
+using System.Threading.Tasks;
 
 namespace EmailNotifier
 {
@@ -30,7 +30,7 @@ namespace EmailNotifier
         /// <param name="numberOfMessagesToReceive"> liczba wiadomości do przeczytania z serwera</param>
         /// <returns></returns>
 
-        public LinkedList<IEmailMessage> ReceiveEmails(int numberOfMessagesToReceive)
+        public async Task<LinkedList<IEmailMessage>> ReceiveEmailsAsync(int numberOfMessagesToReceive)
         {
             emailsReceived.Clear();
             
@@ -40,7 +40,7 @@ namespace EmailNotifier
                     GetMessagesImap(numberOfMessagesToReceive);
                     break;
                 case ServerTypes.POP3:
-                    GetMessagesPop3(numberOfMessagesToReceive);
+                    GetMessagesPop3Async(numberOfMessagesToReceive);
                     break;
             }
 
@@ -73,12 +73,12 @@ namespace EmailNotifier
 
 
 
-        private void GetMessagesPop3(int numberOfMessagesToReceive)
+        private async void GetMessagesPop3Async(int numberOfMessagesToReceive)
         {
 
             using (var emailClient = new Pop3Client())
             {               
-                int numberOfMessagesOnServer = initialPOP3Setup(emailClient); 
+                int numberOfMessagesOnServer = await initialPOP3SetupAsync(emailClient); 
 
                 for (int i = numberOfMessagesOnServer - 1; i > 0 && i > (numberOfMessagesOnServer -1 - numberOfMessagesToReceive); i--)
                 {
@@ -102,7 +102,7 @@ namespace EmailNotifier
         /// </summary>
         /// <param name="emailClient"></param>
         /// <returns></returns>
-        private int initialPOP3Setup(Pop3Client emailClient)
+        private async Task<int> initialPOP3SetupAsync(Pop3Client emailClient)
         {
             try
             {
@@ -110,7 +110,7 @@ namespace EmailNotifier
             emailClient.AuthenticationMechanisms.Remove("XOAUTH2");
             emailClient.Authenticate(emailAccountConfiguration.ReceiveUsername, emailAccountConfiguration.ReceivePassword);
 
-            return emailClient.Count;
+            return emailClient.GetMessageCount();
             }
             catch (System.Net.Sockets.SocketException exc)
             {
@@ -130,13 +130,14 @@ namespace EmailNotifier
 
 
  
-        private void GetMessagesPop3(string newestEmailId, DateTime newestEmailDateTime)
+        private async void GetMessagesPop3(string newestEmailId, DateTime newestEmailDateTime)
         {
             try
             {
                 using (var emailClient = new Pop3Client())
                 {
-                    int numberOfMessagesOnServer = initialPOP3Setup(emailClient);
+                    int numberOfMessagesOnServer = await initialPOP3SetupAsync(emailClient);
+
                     int messageIndex = numberOfMessagesOnServer - 1;                //index ostatniego, tj najnowszego, maila na serwerze
                     EmailMessage emailMessage;
 
@@ -210,6 +211,15 @@ namespace EmailNotifier
                 emailClient.Disconnect(true);
             }
 
+        }
+        /// <summary>
+        /// dodana w celu implementacji interfejsu, wyrzuca NotImplementedException
+        /// </summary>
+        /// <param name="numberOfMessages"></param>
+        /// <returns></returns>
+        public LinkedList<IEmailMessage> ReceiveEmails(int numberOfMessages)
+        {
+            throw new NotImplementedException();
         }
     }
 }

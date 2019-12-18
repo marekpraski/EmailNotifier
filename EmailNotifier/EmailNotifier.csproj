@@ -79,7 +79,6 @@
     </Compile>
     <Compile Include="EmailMessage.cs" />
     <Compile Include="EmailService.cs" />
-    <Compile Include="FileManipulator.cs" />
     <Compile Include="IConfigurationReader.cs" />
     <Compile Include="IEmailMessage.cs" />
     <Compile Include="InvalidEmailAccountException.cs" />
