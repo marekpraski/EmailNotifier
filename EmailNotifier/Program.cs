@@ -15,10 +15,19 @@ namespace EmailNotifier
         [STAThread]
         static void Main()
         {
+            try
+            {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             
             Application.Run(new MainForm());
+
+            }
+            catch (System.Reflection.TargetInvocationException ex)
+            {
+
+                MyMessageBox.display(ex.Message +"\r\n"+ ex.InnerException +"\r\n"+ ex.StackTrace);
+            }
         }
 
     }

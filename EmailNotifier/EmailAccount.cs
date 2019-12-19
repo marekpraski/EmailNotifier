@@ -13,7 +13,11 @@ namespace EmailNotifier
         public LinkedList<IEmailMessage> allEmailsList { get; set; }
         public LinkedList<IEmailMessage> newEmailsList { get; set; }
         public IEmailAccountConfiguration configuration { get; set; }
-        public bool hasNewEmails { get; set; }
+        public bool hasNewEmails
+        {
+            get { return newEmailsList.Count > 0; }
+            set { }
+        }
 
         public EmailAccount()
         {

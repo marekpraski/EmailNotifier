@@ -1,13 +1,9 @@
-﻿using MailKit.Net.Pop3;
+﻿
 using System;
 using System.Collections.Generic;
-using System.Xml;
-using System.Configuration;
-using System.Web;
 using System.IO;
 using System.IO.Compression;
 using System.Windows.Forms;
-using System.Net.Mail;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading.Tasks;
 
@@ -69,9 +65,9 @@ namespace EmailNotifier
         private void configureEmailAccounts()
         {
             ConfigurationForm configForm = new ConfigurationForm(generateAccountConfigurationsDict(mailBoxes));    //przesyłam słownik konfiguracji kont, żeby można było anulować zmiany
-            configForm.saveButtonClickedEvent += configurationFormSaveButtonClickedAsync;
+            configForm.saveButtonClickedEvent += configurationFormSaveButtonClicked;
             configForm.ShowDialog();
-            configForm.saveButtonClickedEvent -= configurationFormSaveButtonClickedAsync;    //likwiduję zdarzenie żeby zapobiec wyciekowi pamięci
+            configForm.saveButtonClickedEvent -= configurationFormSaveButtonClicked;    //likwiduję zdarzenie żeby zapobiec wyciekowi pamięci
         }
 
 
@@ -85,32 +81,6 @@ namespace EmailNotifier
                 accountConfigDict.Add(accountName, account.configuration);
             }
             return accountConfigDict;
-        }
-
-
-        /// <summary>
-        /// dla nowych kont wczytuję startową liczbę maili i zapisuję do pliku
-        /// </summary>
-        /// <returns></returns>
-        private async Task initialAccountSetupAsync()
-        {
-            if (this.mailBoxes.Count > 0)
-            {
-                bool messagesReceived = false;
-                foreach (string mailboxName in this.mailBoxes.Keys)
-                {
-                    EmailAccount mailbox;
-                    mailBoxes.TryGetValue(mailboxName, out mailbox);
-
-                    if (mailbox.allEmailsList.Count == 0)
-                    {
-                        if (await getMessagesAsync(mailbox))
-                            messagesReceived = true;
-                    }
-                }
-                if (messagesReceived)
-                    saveDataToFile();
-            }
         }
 
 
@@ -164,10 +134,9 @@ namespace EmailNotifier
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="args"></param>
-        private async void configurationFormSaveButtonClickedAsync(object sender, ConfigurationFormEventArgs args)
+        private void configurationFormSaveButtonClicked(object sender, ConfigurationFormEventArgs args)
         {
             Form configForm = sender as Form;
-            configForm.Hide();
 
             // aktualizaję konfigurację konta, jeżeli to konto jest w obu słownikach; 
             //dodaję nowe konto jeżeli go nie ma w słowniku kont a jest w słowniku otrzymanym z okna konfiguracji
@@ -200,10 +169,7 @@ namespace EmailNotifier
                     mailBoxes.Remove(accountName);
                 }
             }
-
-            await initialAccountSetupAsync();
             configForm.Close();
-
         }
 
  
@@ -476,11 +442,11 @@ namespace EmailNotifier
                         listRow.Name = emailMessage.messageId;
                         listView.Items.Add(listRow);
 
-                        messagePacketHeight += emailNumber * 10;        //liczę mnożąc liczbę wierszy przez wysokość jednego wiersza
+                        messagePacketHeight += emailNumber * 6;        //liczę mnożąc liczbę wierszy przez wysokość jednego wiersza
                         emailNumber++;
                     }
 
-                    listView.Height = messagePacketHeight + 10;         //dodaję margines
+                    listView.Height = messagePacketHeight + 20;         //dodaję margines
 
                     tabPage.Text = mailboxName;
                     tabPage.Width = listView.Width + 3;
@@ -647,10 +613,19 @@ namespace EmailNotifier
             {
                 EmailAccount mailbox;
                 mailBoxes.TryGetValue(mailboxName, out mailbox);
-                IEmailMessage newestEmail = mailbox.hasNewEmails ? mailbox.newEmailsList.First.Value : mailbox.allEmailsList.First.Value;
 
-                if (await getMessagesAsync(mailbox, newestEmail))
-                    messagesReceived = true;
+                if (mailbox.allEmailsList.Count == 0)
+                {
+                    if (await getMessagesAsync(mailbox))
+                        messagesReceived = true;
+                }
+                else
+                {
+                    IEmailMessage newestEmail = mailbox.hasNewEmails ? mailbox.newEmailsList.First.Value : mailbox.allEmailsList.First.Value;
+
+                    if (await getMessagesAsync(mailbox, newestEmail))
+                        messagesReceived = true;
+                }
             }
             return messagesReceived;
         }
@@ -661,9 +636,12 @@ namespace EmailNotifier
             IEmailAccountConfiguration emailConfiguration = mailbox.configuration;
             EmailService emailService = new EmailService(emailConfiguration);
             LinkedList<IEmailMessage> messages = await emailService.ReceiveEmailsAsync(numberOfMessages);
-            if(messages.Count > 0)
+            if (messages.Count > 0)
+            {
                 mailbox.addEmail(messages);
-            return messages.Count > 0;
+                return true;
+            }
+            return false;
         }
 
 
@@ -674,8 +652,11 @@ namespace EmailNotifier
             EmailService emailService = new EmailService(emailConfiguration);
             LinkedList<IEmailMessage> messages = await emailService.ReceiveEmailsAsync(email);
             if (messages.Count > 0)
+            {
                 mailbox.addEmail(messages);
-            return messages.Count > 0;
+                return true;
+            }
+            return false;
         }
 
 
