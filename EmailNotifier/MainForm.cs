@@ -32,14 +32,25 @@ namespace EmailNotifier
         }
 
 
+        #region Region - start programu i konfiguracja
+
         private void initialSetup()
         {
+            assertDataDirectoryExists();
             setupMailboxes();
+        }
+
+
+        /// <summary>
+        /// tworzy katalog na plik z danymni, jeżeli go jeszcze nie ma
+        /// </summary>
+        private void assertDataDirectoryExists()
+        {
+            Directory.CreateDirectory(ProgramSettings.fileSavePath);
         }
 
         /// <summary>
         /// jeżeli istnieje plik z danymi, czyta konfigurację kont z pliku
-        /// w przeciwnym wypadku otwiera okno konfiguracji i tworzy taki plik
         /// </summary>
         private void setupMailboxes()
         {
@@ -48,15 +59,13 @@ namespace EmailNotifier
             {                
                 readDataFromFile(emailDataFile);                              
             }
-            else
-            //jeżeli brak pliku otwieram okno konfiguracji kont pocztowych oraz czytam po kilka maili z każdego i zapisuję wszystko do pliku
-            //to będzie punkt startowy do dalszego działania
-            {
-                updateMailboxes(emailDataFile);
-            }
         }
 
-        private void updateMailboxes(string emailDataFile)
+
+        /// <summary>
+        /// uruchamia okno konfiguracji kont mailowych i przypisuje metodę do zdarzenia zapisu w tym oknie
+        /// </summary>
+        private void configureEmailAccounts()
         {
             ConfigurationForm configForm = new ConfigurationForm(generateAccountConfigurationsDict(mailBoxes));    //przesyłam słownik konfiguracji kont, żeby można było anulować zmiany
             configForm.saveButtonClickedEvent += configurationFormSaveButtonClickedAsync;
@@ -78,10 +87,40 @@ namespace EmailNotifier
         }
 
 
+        /// <summary>
+        /// dla nowych kont wczytuję startową liczbę maili i zapisuję do pliku
+        /// </summary>
+        /// <returns></returns>
+        private async Task initialAccountSetupAsync()
+        {
+            if (this.mailBoxes.Count > 0)
+            {
+                bool messagesReceived = false;
+                foreach (string mailboxName in this.mailBoxes.Keys)
+                {
+                    EmailAccount mailbox;
+                    mailBoxes.TryGetValue(mailboxName, out mailbox);
+
+                    if (mailbox.allEmailsList.Count == 0)
+                    {
+                        if (await getMessagesAsync(mailbox))
+                            messagesReceived = true;
+                    }
+                }
+                if (messagesReceived)
+                    saveDataToFile(ProgramSettings.fileSavePath + ProgramSettings.emailDataFileName);
+            }
+        }
+
+
+        #endregion
+
+
+
         #region Region - interakcja użytkownika
 
 
-        private void Form1_Resize(object sender, EventArgs e)
+        private void MainForm_Resize(object sender, EventArgs e)
         {
             //if the form is minimized  
             //hide it from the task bar  
@@ -91,14 +130,18 @@ namespace EmailNotifier
                 Hide();
                 notifyIcon1.Visible = true;
                 notifyIcon1.ShowBalloonTip(1000);
+                checkEmailsTimer.Start();
             }
         }
 
-        private void NotifyIcon1_DoubleClick(object sender, EventArgs e)
+
+
+        private void NotifyIcon_DoubleClick(object sender, EventArgs e)
         {
             Show();
             this.WindowState = FormWindowState.Normal;
             notifyIcon1.Visible = false;
+            checkEmailsTimer.Stop();
         }
 
 
@@ -109,8 +152,8 @@ namespace EmailNotifier
         /// <param name="args"></param>
         private async void configurationFormSaveButtonClickedAsync(object sender, ConfigurationFormEventArgs args)
         {
-            Form form = sender as Form;
-            form.Hide();
+            Form configForm = sender as Form;
+            configForm.Hide();
 
             // aktualizaję konfigurację konta, jeżeli to konto jest w obu słownikach; 
             //dodaję nowe konto jeżeli go nie ma w słowniku kont a jest w słowniku otrzymanym z okna konfiguracji
@@ -145,36 +188,11 @@ namespace EmailNotifier
             }
 
             await initialAccountSetupAsync();
-            form.Close();
+            configForm.Close();
 
         }
 
-        private async Task initialAccountSetupAsync()
-        {
-            try
-            {
-                //dla nowych kont wczytuję startową liczbę maili 
-                if (this.mailBoxes.Count > 0)
-                {
-                    foreach (string mailboxName in this.mailBoxes.Keys)
-                    {
-                        EmailAccount mailbox;
-                        mailBoxes.TryGetValue(mailboxName, out mailbox);
-
-                        if (mailbox.allEmailsList.Count == 0)
-                        {
-                            await getMessagesAsync(mailbox);
-                        }
-                    
-                        saveDataToFile(ProgramSettings.fileSavePath + ProgramSettings.emailDataFileName);                  
-                    }
-                }
-            }
-            catch (FileNotFoundException ex)
-            {
-                MyMessageBox.display(ex.Message, MessageBoxType.Error);
-            }
-        }
+ 
 
 
         //
@@ -183,41 +201,38 @@ namespace EmailNotifier
 
         private void EditAccountsButton_Click(object sender, EventArgs e)
         {
-            updateMailboxes(ProgramSettings.fileSavePath + ProgramSettings.emailDataFileName);
+            configureEmailAccounts();
         }
 
 
         private void checkForEmailsButton_Click(object sender, EventArgs e)
         {
-            try
-            {
+            bool messagesReceived = false;
+
             foreach (string mailboxName in this.mailBoxes.Keys)
             {
                 EmailAccount mailbox;
                 mailBoxes.TryGetValue(mailboxName, out mailbox);
                 IEmailMessage newestEmail = mailbox.hasNewEmails ? mailbox.newEmailsList.First.Value : mailbox.allEmailsList.First.Value;
 
-                getMessages(mailbox, newestEmail);
-                saveDataToFile(ProgramSettings.fileSavePath + ProgramSettings.emailDataFileName);
-                this.emailsDisplayed = EmailListType.newEmails;
-                displayMessages();
+                if (getMessages(mailbox, newestEmail))
+                    messagesReceived = true;
             }
-
-            }
-            catch (FileNotFoundException exc)
+            if (messagesReceived)
             {
-                MyMessageBox.display(exc.Message, MessageBoxType.Error);
+                saveDataToFile(ProgramSettings.fileSavePath + ProgramSettings.emailDataFileName);
+                displayNewMessages();
+            }
+            else
+            {
+                MyMessageBox.display("no new messages");
             }
         }
 
 
         private void ShowNewEmailsButton_Click(object sender, EventArgs e)
         {
-            emailsDisplayed = EmailListType.newEmails;
-            displayMessages();
-            hideEmailsButton.Enabled = true;
-            showNewEmailsButton.Enabled = false;
-            showAllEmailsButton.Enabled = false;
+            displayNewMessages();
         }
 
 
@@ -237,8 +252,15 @@ namespace EmailNotifier
             emailsDisplayed = EmailListType.none;
         }
 
+
+        /// <summary>
+        /// uruchamia funkcję zamykania okna wyświetlania emaili, jeżeli jest ono otwarte
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
+            if(emailsDisplayed != EmailListType.none)
             closeEmailsDisplayWindow();
         }
 
@@ -246,58 +268,18 @@ namespace EmailNotifier
         #endregion
 
 
-        /// <summary>
-        /// zamyka okno wyświetlania emaili, aktualizując nowe emaile w razie potrzeby i zapisując zmiany na dysk
-        /// </summary>
-        private void closeEmailsDisplayWindow()
+
+        #region Region - automat sprawdzający pocztę
+
+        private void CheckEmailsTimer_Tick(object sender, EventArgs e)
         {
-            //wychwytuję zaznaczone emaile w każdej zakładce, ale tylko wtedy gdy wyświetlona była lista nowych maili
-            if (emailsDisplayed == EmailListType.newEmails)
-            {
-                Control.ControlCollection tabControlContent = emailDisplayTabControl.Controls;
-                checkedEmailsDict.Clear();
-                int numberOfCheckedEmails = 0;                  //jeżeli zero, to nie wywołuję funkcji aktualizacji
-                foreach (Control c in tabControlContent)
-                {
-                    TabPage page = c as TabPage;
-                    string accountName = page.Text;
-                    Control.ControlCollection tabPageContent = page.Controls;
-                    ListView emailsDisplay = tabPageContent[0] as ListView;             //każdy tab zawiera tylko jedną listę
-                    ListView.CheckedListViewItemCollection checkedEmails = emailsDisplay.CheckedItems;
-                    List<string> checkedEmailsIDs = new List<string>();
-                    foreach (ListViewItem item in checkedEmails)
-                    {
-                        checkedEmailsIDs.Add(item.Name);
-                    }
-                    checkedEmailsDict.Add(accountName, checkedEmailsIDs);
-                    numberOfCheckedEmails += checkedEmailsIDs.Count;
-                }
-                if (numberOfCheckedEmails > 0)
-                    try
-                    {
-                        {                                                   //aktualizuję słownik i zapisuję zmiany na dysk
-                            updateNewEmailsDict();
-                            saveDataToFile(ProgramSettings.fileSavePath + ProgramSettings.emailDataFileName);
-                        }
 
-                    }
-                    catch (FileNotFoundException exc)
-                    {
-                        MyMessageBox.display(exc.Message, MessageBoxType.Error);
-                    }
-            }
-
-
-            //dopiero po wychwyceniu zaznaczonych emaili zamykam okno
-            emailDisplayTabControl.Dispose();
-            infoLabel.Dispose();
-            this.Width = 230;
-            this.Height = 80;
-            hideEmailsButton.Enabled = false;
-            showNewEmailsButton.Enabled = true;
-            showAllEmailsButton.Enabled = true;
         }
 
+        #endregion
+
+
+       
 
 
         /// <summary>
@@ -317,7 +299,6 @@ namespace EmailNotifier
                 }
             }   
         }
-
 
 
 
@@ -360,11 +341,6 @@ namespace EmailNotifier
        /// <param name="fileName"></param>
         private void saveDataToFile(string fileName)
         {
-
-            if (!File.Exists(fileName))
-            {
-                throw new FileNotFoundException("nie można zapisać danych do pliku. Sprawdź podaną ścieżkę");
-            }
             using (FileStream fileStream = new FileStream(fileName, FileMode.Create))
             {
                 MemoryStream serializedMemoryStream = new MemoryStream();
@@ -384,10 +360,23 @@ namespace EmailNotifier
 
                 serializedMemoryStream.Close();
                 compressedStream.Close();
-            }
-            
+            }            
         }
 
+
+
+        #region Region - wyświetlanie emaili
+
+
+
+        private void displayNewMessages()
+        {
+            emailsDisplayed = EmailListType.newEmails;
+            displayMessages();
+            hideEmailsButton.Enabled = true;
+            showNewEmailsButton.Enabled = false;
+            showAllEmailsButton.Enabled = false;
+        }
 
 
         private void displayMessages()
@@ -467,6 +456,7 @@ namespace EmailNotifier
         }
 
 
+
         private void addTabControl()
         {
             emailDisplayTabControl = new TabControl();
@@ -483,12 +473,11 @@ namespace EmailNotifier
         {
             infoLabel = new Label();
             infoLabel.AutoSize = true;
-            infoLabel.Location = new System.Drawing.Point(200, 10);
+            infoLabel.Location = new System.Drawing.Point(200, 5);
             infoLabel.Size = new System.Drawing.Size(35, 13);
             infoLabel.BackColor = System.Drawing.SystemColors.Control;
             infoLabel.Font = new System.Drawing.Font("Arial", 15);
             infoLabel.ForeColor = System.Drawing.Color.Black;
-            infoLabel.BringToFront();
 
             switch (this.emailsDisplayed)
             {
@@ -496,11 +485,13 @@ namespace EmailNotifier
                     infoLabel.Text = "all emails";
                     break;
                 case EmailListType.newEmails:
-                    infoLabel.Text = "new emails - check emails to mark as read";
+                    infoLabel.Text = "new emails - check emails to mark them as read";
                     break;
             }
             this.Controls.Add(infoLabel);
+            infoLabel.BringToFront();
         }
+
 
         private ListView generateBlankListview(int listviewWidth)
         {
@@ -546,23 +537,73 @@ namespace EmailNotifier
             return tabPage;
         }
 
-        private async Task getMessagesAsync(EmailAccount mailbox, int numberOfMessages=4)
-        {
 
+        /// <summary>
+        /// zamyka okno wyświetlania emaili, aktualizując nowe emaile w razie potrzeby i zapisując zmiany na dysk
+        /// </summary>
+        private void closeEmailsDisplayWindow()
+        {
+            //wychwytuję zaznaczone emaile w każdej zakładce, ale tylko wtedy gdy wyświetlona była lista nowych maili
+            if (emailsDisplayed == EmailListType.newEmails)
+            {
+                Control.ControlCollection tabControlContent = emailDisplayTabControl.Controls;
+                checkedEmailsDict.Clear();
+                int numberOfCheckedEmails = 0;                  //jeżeli zero, to nie wywołuję funkcji aktualizacji
+                foreach (Control c in tabControlContent)
+                {
+                    TabPage page = c as TabPage;
+                    string accountName = page.Text;
+                    Control.ControlCollection tabPageContent = page.Controls;
+                    ListView emailsDisplay = tabPageContent[0] as ListView;             //każdy tab zawiera tylko jedną listę
+                    ListView.CheckedListViewItemCollection checkedEmails = emailsDisplay.CheckedItems;
+                    List<string> checkedEmailsIDs = new List<string>();
+                    foreach (ListViewItem item in checkedEmails)
+                    {
+                        checkedEmailsIDs.Add(item.Name);
+                    }
+                    checkedEmailsDict.Add(accountName, checkedEmailsIDs);
+                    numberOfCheckedEmails += checkedEmailsIDs.Count;
+                }
+                if (numberOfCheckedEmails > 0)
+                {                                                   //aktualizuję słownik i zapisuję zmiany na dysk
+                    updateNewEmailsDict();
+                    saveDataToFile(ProgramSettings.fileSavePath + ProgramSettings.emailDataFileName);
+                }
+            }
+
+
+            //dopiero po wychwyceniu zaznaczonych emaili zamykam okno
+            emailDisplayTabControl.Dispose();
+            infoLabel.Dispose();
+            this.Width = 230;
+            this.Height = 80;
+            hideEmailsButton.Enabled = false;
+            showNewEmailsButton.Enabled = true;
+            showAllEmailsButton.Enabled = true;
+        }
+
+        #endregion
+
+
+        private async Task<bool> getMessagesAsync(EmailAccount mailbox, int numberOfMessages=4)
+        {
             IEmailAccountConfiguration emailConfiguration = mailbox.configuration;
             EmailService emailService = new EmailService(emailConfiguration);
             LinkedList<IEmailMessage> messages = await emailService.ReceiveEmailsAsync(numberOfMessages);
-            mailbox.addEmail(messages);
-
+            if(messages.Count > 0)
+                mailbox.addEmail(messages);
+            return messages.Count > 0;
         }
 
-        private void getMessages(EmailAccount mailbox, IEmailMessage email)
+        private bool getMessages(EmailAccount mailbox, IEmailMessage email)
         {
 
             IEmailAccountConfiguration emailConfiguration = mailbox.configuration;
             EmailService emailService = new EmailService(emailConfiguration);
-            mailbox.addEmail(emailService.ReceiveEmails(email));
-
+            LinkedList<IEmailMessage> messages = emailService.ReceiveEmails(email);
+            if (messages.Count > 0)
+                mailbox.addEmail(messages);
+            return messages.Count > 0;
         }
 
 

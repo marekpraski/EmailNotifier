@@ -37,6 +37,8 @@
             this.showNewEmailsButton = new System.Windows.Forms.ToolStripButton();
             this.showAllEmailsButton = new System.Windows.Forms.ToolStripButton();
             this.hideEmailsButton = new System.Windows.Forms.ToolStripButton();
+            this.checkEmailsTimer = new System.Windows.Forms.Timer(this.components);
+            this.toggleNotifyiconTimer = new System.Windows.Forms.Timer(this.components);
             this.toolStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -46,7 +48,7 @@
             this.notifyIcon1.BalloonTipTitle = "Email Notifier";
             this.notifyIcon1.Icon = ((System.Drawing.Icon)(resources.GetObject("notifyIcon1.Icon")));
             this.notifyIcon1.Text = "Email Notifier";
-            this.notifyIcon1.DoubleClick += new System.EventHandler(this.NotifyIcon1_DoubleClick);
+            this.notifyIcon1.DoubleClick += new System.EventHandler(this.NotifyIcon_DoubleClick);
             // 
             // toolStrip1
             // 
@@ -116,6 +118,11 @@
             this.hideEmailsButton.Text = "hide emails";
             this.hideEmailsButton.Click += new System.EventHandler(this.HideEmailsButton_Click);
             // 
+            // checkEmailsTimer
+            // 
+            this.checkEmailsTimer.Interval = 5000;
+            this.checkEmailsTimer.Tick += new System.EventHandler(this.CheckEmailsTimer_Tick);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -126,7 +133,7 @@
             this.Name = "MainForm";
             this.Text = "Email Notifier";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
-            this.Resize += new System.EventHandler(this.Form1_Resize);
+            this.Resize += new System.EventHandler(this.MainForm_Resize);
             this.toolStrip1.ResumeLayout(false);
             this.toolStrip1.PerformLayout();
             this.ResumeLayout(false);
@@ -142,6 +149,8 @@
         private System.Windows.Forms.ToolStripButton showNewEmailsButton;
         private System.Windows.Forms.ToolStripButton hideEmailsButton;
         private System.Windows.Forms.ToolStripButton showAllEmailsButton;
+        private System.Windows.Forms.Timer checkEmailsTimer;
+        private System.Windows.Forms.Timer toggleNotifyiconTimer;
     }
 }
 
