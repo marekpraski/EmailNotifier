@@ -15,14 +15,15 @@ namespace EmailNotifier
 {
     public partial class MainForm : Form
     {
+        private enum EmailListType { newEmails, allEmails, none}
+
         private TabControl emailDisplayTabControl;
         private Label infoLabel;
         private Dictionary<string, EmailAccount> mailBoxes = new Dictionary<string, EmailAccount>();
         private Dictionary<string, List<string>> checkedEmailsDict = new Dictionary<string, List<string>>();
 
         private EmailListType emailsDisplayed = EmailListType.none;
-
-        private enum EmailListType { newEmails, allEmails, none}
+        private bool newEmailsReceived = false;
 
 
         public MainForm()
@@ -147,8 +148,13 @@ namespace EmailNotifier
             Show();
             this.WindowState = FormWindowState.Normal;
             notifyIcon.Visible = false;
-            checkEmailsTimer.Stop();
+            checkEmailsTimer.Stop();            
             stopUserNotification();
+            if (newEmailsReceived)
+            {
+                displayNewMessages();
+                newEmailsReceived = false;
+            }
         }
 
 
@@ -218,9 +224,9 @@ namespace EmailNotifier
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void checkForEmailsButton_Click(object sender, EventArgs e)
+        private async void checkForEmailsButton_Click(object sender, EventArgs e)
         {
-            if (checkForEmails())
+            if (await checkForEmailsAsync())
             {
                 saveDataToFile();
                 displayNewMessages();
@@ -274,15 +280,14 @@ namespace EmailNotifier
 
         #region Region - automat sprawdzający pocztę
 
-        private void CheckEmailsTimer_Tick(object sender, EventArgs e)
+        private async void CheckEmailsTimer_Tick(object sender, EventArgs e)
         {
-            //if (checkForEmails())
-            //{
-                //saveDataToFile();
+            if (await checkForEmailsAsync())
+            {
+                saveDataToFile();
+                this.newEmailsReceived = true;
                 startUserNotification();
-
-            //}
-            //notifyIcon.Icon = Properties.Resources.mailBlack;
+            }
         }
 
         private void startUserNotification()
@@ -290,7 +295,7 @@ namespace EmailNotifier
             notifyIcon.BalloonTipText = ("you've got mail!");
             //ShowBalloonTip timeout is deprecated as of Windows Vista. Notification display times are now based on system accessibility settings.
             //Minimum and maximum timeout values are enforced by the operating system and are typically 10 and 30 seconds, respectively, 
-            //however this can vary depending on the operating system. 
+            //however this can vary depending on the operating system. (więcej - czytaj dokumentację)
 
             notifyIcon.ShowBalloonTip(1);
             toggleNotifyiconTimer.Start();
@@ -306,6 +311,7 @@ namespace EmailNotifier
         private void stopUserNotification()
         {
             toggleNotifyiconTimer.Stop();
+            notifyIcon.BalloonTipText = ("Double-click to open");
         }
 
 
@@ -442,10 +448,6 @@ namespace EmailNotifier
             {
                 messagePacketHeight = 0;
                 emailNumber = 0;
-                TabPage tabPage = generateBlankTabPage();
-                tabPage.Text = mailboxName;
-
-                ListView listView = generateBlankListview(listviewWidth);
 
                 EmailAccount mailbox;
                 mailBoxes.TryGetValue(mailboxName, out mailbox);
@@ -461,31 +463,38 @@ namespace EmailNotifier
                         break;
                 }
 
-
-                foreach (var emailMessage in emailsList)
+                if (emailsList.Count > 0)
                 {
-                    string[] emailDataRow = new string[] { emailMessage.messageDateTime.ToString(), emailMessage.FromAddress, emailMessage.Subject };
+                    TabPage tabPage = generateBlankTabPage();
+                    ListView listView = generateBlankListview(listviewWidth);
 
-                    ListViewItem listRow = new ListViewItem(emailDataRow);
-                    listRow.Name = emailMessage.messageId;
-                    listView.Items.Add(listRow);
+                    foreach (var emailMessage in emailsList)
+                    {
+                        string[] emailDataRow = new string[] { emailMessage.messageDateTime.ToString(), emailMessage.FromAddress, emailMessage.Subject };
 
-                    messagePacketHeight += emailNumber * 10;        //liczę mnożąc liczbę wierszy przez wysokość jednego wiersza
-                    emailNumber++;
+                        ListViewItem listRow = new ListViewItem(emailDataRow);
+                        listRow.Name = emailMessage.messageId;
+                        listView.Items.Add(listRow);
+
+                        messagePacketHeight += emailNumber * 10;        //liczę mnożąc liczbę wierszy przez wysokość jednego wiersza
+                        emailNumber++;
+                    }
+
+                    listView.Height = messagePacketHeight + 10;         //dodaję margines
+
+                    tabPage.Text = mailboxName;
+                    tabPage.Width = listView.Width + 3;
+                    tabPage.Height = listView.Height + 20;              //dodaję margines
+                    tabPage.Controls.Add(listView);
+
+                    tabPage.Height = tabPage.Height > maxTabPageHeigth ? maxTabPageHeigth : tabPage.Height;     //korekta wysokości tabPage, żeby nie przekraczała max
+                    maxActualTabPageHeigth = maxActualTabPageHeigth > tabPage.Height ? maxActualTabPageHeigth : tabPage.Height;
+
+                    emailDisplayTabControl.Controls.Add(tabPage);
+                    tabPage.ResumeLayout();
                 }
-
-                listView.Height = messagePacketHeight + 10;         //dodaję margines
-
-                tabPage.Width = listView.Width + 3;
-                tabPage.Height = listView.Height + 20;              //dodaję margines
-                tabPage.Controls.Add(listView);
-
-                tabPage.Height = tabPage.Height > maxTabPageHeigth ? maxTabPageHeigth : tabPage.Height;     //korekta wysokości tabPage, żeby nie przekraczała max
-                maxActualTabPageHeigth = maxActualTabPageHeigth > tabPage.Height ? maxActualTabPageHeigth : tabPage.Height;
-
-                emailDisplayTabControl.Controls.Add(tabPage);
-                tabPage.ResumeLayout();
             }
+
             emailDisplayTabControl.Height = maxActualTabPageHeigth + 10;
             emailDisplayTabControl.Width = listviewWidth + 10;
             emailDisplayTabControl.ResumeLayout();
@@ -627,10 +636,10 @@ namespace EmailNotifier
 
 
 
-        #region Region - czytanie czytanie emaili z serwisu
+        #region Region - czytanie emaili z serwisu
 
 
-        private bool checkForEmails()
+        private async Task<bool> checkForEmailsAsync()
         {
             bool messagesReceived = false;
 
@@ -640,7 +649,7 @@ namespace EmailNotifier
                 mailBoxes.TryGetValue(mailboxName, out mailbox);
                 IEmailMessage newestEmail = mailbox.hasNewEmails ? mailbox.newEmailsList.First.Value : mailbox.allEmailsList.First.Value;
 
-                if (getMessages(mailbox, newestEmail))
+                if (await getMessagesAsync(mailbox, newestEmail))
                     messagesReceived = true;
             }
             return messagesReceived;
@@ -657,12 +666,13 @@ namespace EmailNotifier
             return messages.Count > 0;
         }
 
-        private bool getMessages(EmailAccount mailbox, IEmailMessage email)
+
+        private async Task<bool> getMessagesAsync(EmailAccount mailbox, IEmailMessage email)
         {
 
             IEmailAccountConfiguration emailConfiguration = mailbox.configuration;
             EmailService emailService = new EmailService(emailConfiguration);
-            LinkedList<IEmailMessage> messages = emailService.ReceiveEmails(email);
+            LinkedList<IEmailMessage> messages = await emailService.ReceiveEmailsAsync(email);
             if (messages.Count > 0)
                 mailbox.addEmail(messages);
             return messages.Count > 0;

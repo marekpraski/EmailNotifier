@@ -120,7 +120,7 @@
             // 
             // checkEmailsTimer
             // 
-            this.checkEmailsTimer.Interval = 50000;
+            this.checkEmailsTimer.Interval = 900000;
             this.checkEmailsTimer.Tick += new System.EventHandler(this.CheckEmailsTimer_Tick);
             // 
             // toggleNotifyiconTimer

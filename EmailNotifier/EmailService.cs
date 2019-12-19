@@ -31,9 +31,7 @@ namespace EmailNotifier
         /// <returns></returns>
 
         public async Task<LinkedList<IEmailMessage>> ReceiveEmailsAsync(int numberOfMessagesToReceive)
-        {
-            emailsReceived.Clear();
-            
+        {            
             switch (emailAccountConfiguration.receiveServerType)
             {
                 case ServerTypes.IMAP:
@@ -44,7 +42,7 @@ namespace EmailNotifier
                     break;
             }
 
-            return emailsReceived;
+            return this.emailsReceived;
             
         }
 
@@ -53,7 +51,7 @@ namespace EmailNotifier
         /// </summary>
         /// <param name="newestEmail"></param>
         /// <returns></returns>
-        public LinkedList<IEmailMessage> ReceiveEmails(IEmailMessage newestEmail)
+        public async Task<LinkedList<IEmailMessage>> ReceiveEmailsAsync(IEmailMessage newestEmail)
         {
             string newestEmailId = newestEmail.messageId;
             DateTime newestEmailDateTime = newestEmail.messageDateTime;
@@ -63,12 +61,11 @@ namespace EmailNotifier
                     GetMessagesImap(newestEmailId, newestEmailDateTime);
                     break;
                 case ServerTypes.POP3:
-                    GetMessagesPop3(newestEmailId, newestEmailDateTime);
+                    await GetMessagesPop3Async(newestEmailId, newestEmailDateTime);
                     break;
             }
 
-            return emailsReceived;
-
+            return this.emailsReceived;
         }
 
 
@@ -130,7 +127,7 @@ namespace EmailNotifier
 
 
  
-        private async void GetMessagesPop3(string newestEmailId, DateTime newestEmailDateTime)
+        private async Task GetMessagesPop3Async(string newestEmailId, DateTime newestEmailDateTime)
         {
             try
             {
@@ -218,6 +215,16 @@ namespace EmailNotifier
         /// <param name="numberOfMessages"></param>
         /// <returns></returns>
         public LinkedList<IEmailMessage> ReceiveEmails(int numberOfMessages)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// dodana w celu implementacji interfejsu, wyrzuca NotImplementedException
+        /// </summary>
+        /// <param name="lastEmail"></param>
+        /// <returns></returns>
+        public LinkedList<IEmailMessage> ReceiveEmails(IEmailMessage lastEmail)
         {
             throw new NotImplementedException();
         }
