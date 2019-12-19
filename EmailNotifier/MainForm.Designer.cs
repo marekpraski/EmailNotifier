@@ -44,10 +44,10 @@
             // 
             // notifyIcon
             // 
-            this.notifyIcon.BalloonTipText = "nowa poczta";
+            this.notifyIcon.BalloonTipText = "double-click to open";
             this.notifyIcon.BalloonTipTitle = "Email Notifier";
-            this.notifyIcon.Icon = ((System.Drawing.Icon)(resources.GetObject("notifyIcon.Icon")));
-            this.notifyIcon.Text = "Email Notifier";
+            this.notifyIcon.Icon = global::EmailNotifier.Properties.Resources.mailBlack;
+            this.notifyIcon.Text = "Email Notifier. Double-click to open";
             this.notifyIcon.DoubleClick += new System.EventHandler(this.NotifyIcon_DoubleClick);
             // 
             // toolStrip1
@@ -120,8 +120,13 @@
             // 
             // checkEmailsTimer
             // 
-            this.checkEmailsTimer.Interval = 5000;
+            this.checkEmailsTimer.Interval = 50000;
             this.checkEmailsTimer.Tick += new System.EventHandler(this.CheckEmailsTimer_Tick);
+            // 
+            // toggleNotifyiconTimer
+            // 
+            this.toggleNotifyiconTimer.Interval = 20000;
+            this.toggleNotifyiconTimer.Tick += new System.EventHandler(this.ToggleNotifyiconTimer_Tick);
             // 
             // MainForm
             // 

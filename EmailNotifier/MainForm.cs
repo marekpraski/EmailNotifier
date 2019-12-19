@@ -148,7 +148,9 @@ namespace EmailNotifier
             this.WindowState = FormWindowState.Normal;
             notifyIcon.Visible = false;
             checkEmailsTimer.Stop();
+            stopUserNotification();
         }
+
 
 
         /// <summary>
@@ -277,16 +279,37 @@ namespace EmailNotifier
             //if (checkForEmails())
             //{
                 //saveDataToFile();
-                notifyUser();
+                startUserNotification();
 
             //}
             //notifyIcon.Icon = Properties.Resources.mailBlack;
         }
 
-        private void notifyUser()
+        private void startUserNotification()
         {
-            MyMessageBox.displayAndClose("you've got mail!");
+            notifyIcon.BalloonTipText = ("you've got mail!");
+            //ShowBalloonTip timeout is deprecated as of Windows Vista. Notification display times are now based on system accessibility settings.
+            //Minimum and maximum timeout values are enforced by the operating system and are typically 10 and 30 seconds, respectively, 
+            //however this can vary depending on the operating system. 
+
+            notifyIcon.ShowBalloonTip(1);
+            toggleNotifyiconTimer.Start();
         }
+
+
+        private void ToggleNotifyiconTimer_Tick(object sender, EventArgs e)
+        {
+            notifyIcon.ShowBalloonTip(1);           
+        }
+
+
+        private void stopUserNotification()
+        {
+            toggleNotifyiconTimer.Stop();
+        }
+
+
+
 
         #endregion
 
@@ -644,6 +667,7 @@ namespace EmailNotifier
                 mailbox.addEmail(messages);
             return messages.Count > 0;
         }
+
 
         #endregion
 
