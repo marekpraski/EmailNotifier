@@ -111,15 +111,15 @@ namespace EmailNotifier
             }
             catch (System.Net.Sockets.SocketException exc)
             {
-                MyMessageBox.display(exc.Message + "  " + emailAccountConfiguration.ReceiveServer, MessageBoxType.Error);
+                MyMessageBox.display(exc.Message + "  " + emailAccountConfiguration.ReceiveServer, MyMessageBoxType.Error);
             }
             catch(MailKit.Net.Pop3.Pop3ProtocolException popexc)
             {
-                MyMessageBox.display(popexc.Message + "  " + emailAccountConfiguration.ReceiveServer + "\r\nSprawdź ustawienia uwierzytenienia TSL", MessageBoxType.Error);
+                MyMessageBox.display(popexc.Message + "  " + emailAccountConfiguration.ReceiveServer + "\r\nSprawdź ustawienia uwierzytenienia TSL", MyMessageBoxType.Error);
             }
             catch (MailKit.Security.AuthenticationException ex)
             {
-                MyMessageBox.display(ex.Message + "  " + emailAccountConfiguration.ReceiveServer, MessageBoxType.Error);
+                MyMessageBox.display(ex.Message + "  " + emailAccountConfiguration.ReceiveServer, MyMessageBoxType.Error);
             }
 
             return 0;
@@ -161,7 +161,7 @@ namespace EmailNotifier
             catch (MailKit.Net.Pop3.Pop3ProtocolException exc)
             {
 
-                MyMessageBox.display(exc.Message + "\r\n" + exc.Source, MessageBoxType.Error);
+                MyMessageBox.display(exc.Message + "\r\n" + exc.Source, MyMessageBoxType.Error);
             }
         }
 

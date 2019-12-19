@@ -26,6 +26,11 @@ namespace EmailNotifier
         {
             InitializeComponent();
             initialSetup();
+            if (mailBoxes.Count > 0)
+            {
+                this.WindowState = FormWindowState.Minimized;
+                this.ShowInTaskbar = false;
+            }
         }
 
 
@@ -100,8 +105,13 @@ namespace EmailNotifier
         { 
             if (this.WindowState == FormWindowState.Minimized)
             {
+                if(emailsDisplayed != EmailListType.none)
+                {
+                    closeEmailsDisplayWindow();
+                }
                 Hide();
                 notifyIcon.Visible = true;
+                notifyIcon.BalloonTipText = ("Click to open");
                 notifyIcon.ShowBalloonTip(1000);
                 checkEmailsTimer.Start();
             }
@@ -113,12 +123,12 @@ namespace EmailNotifier
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void NotifyIcon_DoubleClick(object sender, EventArgs e)
+        private void NotifyIcon_Click(object sender, EventArgs e)
         {
             Show();
             this.WindowState = FormWindowState.Normal;
             notifyIcon.Visible = false;
-            checkEmailsTimer.Stop();            
+            checkEmailsTimer.Stop();
             stopUserNotification();
             if (newEmailsReceived)
             {
@@ -235,8 +245,15 @@ namespace EmailNotifier
         /// <param name="e"></param>
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if(emailsDisplayed != EmailListType.none)
-                closeEmailsDisplayWindow();
+            if (MyMessageBox.display("This will exit the application, monitoring of email accounts will stop. Proceed?", MyMessageBoxType.YesNo) == MyMessageBoxResults.Yes)
+            {
+                if (emailsDisplayed != EmailListType.none)
+                    closeEmailsDisplayWindow();
+            }
+            else
+            {
+                e.Cancel = true;
+            }
         }
 
 
@@ -277,7 +294,6 @@ namespace EmailNotifier
         private void stopUserNotification()
         {
             toggleNotifyiconTimer.Stop();
-            notifyIcon.BalloonTipText = ("Double-click to open");
         }
 
 
@@ -660,8 +676,8 @@ namespace EmailNotifier
         }
 
 
-        #endregion
 
+        #endregion
 
     }
 }

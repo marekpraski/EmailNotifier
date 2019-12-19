@@ -11,7 +11,7 @@ using System.Windows.Forms;
 
 namespace EmailNotifier
 {
-    public enum MessageBoxType { Information, Error, Warning, YesNo, YesNoCancel }
+    public enum MyMessageBoxType { Information, Error, Warning, YesNo, YesNoCancel }
     public enum MyMessageBoxResults { Close, Yes, No, Cancel }
 
     public partial class MyMessageBox : Form
@@ -24,7 +24,7 @@ namespace EmailNotifier
         private ButtonType[] mbButtons = new ButtonType[3]; //zmienić, jeżeli będzie potrzeba tworzenie MessageBoxa z większą liczbą buttonów
 
         private MyMessageBoxResults mbResult = MyMessageBoxResults.Close;
-        private MessageBoxType mbType;
+        private MyMessageBoxType mbType;
         private string message;
         private int stdButtonWidth = 75;
         private int stdButtonHeigth = 23;
@@ -35,7 +35,7 @@ namespace EmailNotifier
         private int maxTextBoxWidth = 800;           //maksymalna szerokość pola tekstowego, jeżeli nie określę to rośnie w nieskończoność gdy wiadomość jest jedną linią
         private int textPadding = 30;               //odległość tekstu w textboxie od krawędzi tekstboxu, używam obliczając wysokość tekstboxa gdy występują długie linie
 
-        public MyMessageBox(string message, MessageBoxType mbType)
+        public MyMessageBox(string message, MyMessageBoxType mbType)
         {
             InitializeComponent();
             this.message = message;
@@ -43,7 +43,7 @@ namespace EmailNotifier
             setFormLayout();
         }
 
-        public static MyMessageBoxResults display(string message, MessageBoxType mbType = MessageBoxType.Information)
+        public static MyMessageBoxResults display(string message, MyMessageBoxType mbType = MyMessageBoxType.Information)
         {
             MyMessageBox mmb = new MyMessageBox(message, mbType);
             mmb.textBox1.Text = mmb.message;
@@ -54,7 +54,7 @@ namespace EmailNotifier
 
         public static void displayAndClose(string message, int timeInSeconds = 2)
         {
-            MessageBoxType mbType = MessageBoxType.Information;
+            MyMessageBoxType mbType = MyMessageBoxType.Information;
             MyMessageBox mmb = new MyMessageBox(message, mbType);
 
             System.Windows.Forms.Timer tmr = new System.Windows.Forms.Timer();
@@ -82,31 +82,31 @@ namespace EmailNotifier
         {
             switch (mbType)
             {
-                case MessageBoxType.Information:
+                case MyMessageBoxType.Information:
                     numberOfButtons = 1;
                     buttonText[0] = "OK";
                     mbButtons[0] = ButtonType.Close;
                     this.Text = "Informacja";
                     break;
-                case MessageBoxType.Error:
+                case MyMessageBoxType.Error:
                     numberOfButtons = 1;
                     buttonText[0] = "OK";
                     mbButtons[0] = ButtonType.Close;
                     this.Text = "Błąd";
                     break;
-                case MessageBoxType.Warning:
+                case MyMessageBoxType.Warning:
                     numberOfButtons = 1;
                     buttonText[0] = "OK";
                     mbButtons[0] = ButtonType.Close;
                     this.Text = "Ostrzeżenie";
                     break;
-                case MessageBoxType.YesNo:
+                case MyMessageBoxType.YesNo:
                     numberOfButtons = 2;
                     buttonText[0] = "Tak"; buttonText[1] = "Nie";
                     mbButtons[0] = ButtonType.Yes; mbButtons[1] = ButtonType.No;
                     this.Text = "Decyzja";
                     break;
-                case MessageBoxType.YesNoCancel:
+                case MyMessageBoxType.YesNoCancel:
                     numberOfButtons = 3;
                     buttonText[0] = "Tak"; buttonText[1] = "Nie"; buttonText[2] = "Anuluj";
                     mbButtons[0] = ButtonType.Yes; mbButtons[1] = ButtonType.No; mbButtons[2] = ButtonType.Cancel;

@@ -43,7 +43,7 @@ namespace EmailNotifier
 
         private void DeleteAccountButton_Click(object sender, EventArgs e)
         {
-            MyMessageBoxResults result = MyMessageBox.display("Usunąć zaznaczone konto?", MessageBoxType.YesNo);
+            MyMessageBoxResults result = MyMessageBox.display("Usunąć zaznaczone konto?", MyMessageBoxType.YesNo);
             if(result == MyMessageBoxResults.Yes)
             {
                 string accountName = accountConfigurationControl.getAccountName();
@@ -71,11 +71,11 @@ namespace EmailNotifier
             catch (InvalidEmailAccountException ex)
             {
                 
-                MyMessageBox.display(ex.message + "\r\n" + ex.Source, MessageBoxType.Error);
+                MyMessageBox.display(ex.message + "\r\n" + ex.Source, MyMessageBoxType.Error);
             }
             catch(ArgumentException exc)
             {
-                MyMessageBox.display(exc.Message, MessageBoxType.Error);
+                MyMessageBox.display(exc.Message, MyMessageBoxType.Error);
             }
         }
 
