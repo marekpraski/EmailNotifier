@@ -63,6 +63,16 @@ namespace EmailNotifier.Properties {
         /// <summary>
         ///   Wyszukuje zlokalizowany zasób typu System.Drawing.Icon podobny do zasobu (Ikona).
         /// </summary>
+        internal static System.Drawing.Icon emailYellow {
+            get {
+                object obj = ResourceManager.GetObject("emailYellow", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Wyszukuje zlokalizowany zasób typu System.Drawing.Icon podobny do zasobu (Ikona).
+        /// </summary>
         internal static System.Drawing.Icon mailBlack {
             get {
                 object obj = ResourceManager.GetObject("mailBlack", resourceCulture);

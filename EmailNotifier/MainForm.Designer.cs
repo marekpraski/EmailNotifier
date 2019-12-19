@@ -46,7 +46,7 @@
             // 
             this.notifyIcon.BalloonTipText = "click to open";
             this.notifyIcon.BalloonTipTitle = "Email Notifier";
-            this.notifyIcon.Icon = global::EmailNotifier.Properties.Resources.mailBlack;
+            this.notifyIcon.Icon = global::EmailNotifier.Properties.Resources.emailYellow;
             this.notifyIcon.Text = "Email Notifier. Click to open";
             this.notifyIcon.Click += new System.EventHandler(this.NotifyIcon_Click);
             // 
