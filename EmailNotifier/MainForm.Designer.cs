@@ -30,7 +30,7 @@
         {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
-            this.notifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
+            this.notifyIcon = new System.Windows.Forms.NotifyIcon(this.components);
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.checkForEmailsButton = new System.Windows.Forms.ToolStripButton();
             this.editAccountsButton = new System.Windows.Forms.ToolStripButton();
@@ -42,13 +42,13 @@
             this.toolStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
-            // notifyIcon1
+            // notifyIcon
             // 
-            this.notifyIcon1.BalloonTipText = "nowa poczta";
-            this.notifyIcon1.BalloonTipTitle = "Email Notifier";
-            this.notifyIcon1.Icon = ((System.Drawing.Icon)(resources.GetObject("notifyIcon1.Icon")));
-            this.notifyIcon1.Text = "Email Notifier";
-            this.notifyIcon1.DoubleClick += new System.EventHandler(this.NotifyIcon_DoubleClick);
+            this.notifyIcon.BalloonTipText = "nowa poczta";
+            this.notifyIcon.BalloonTipTitle = "Email Notifier";
+            this.notifyIcon.Icon = ((System.Drawing.Icon)(resources.GetObject("notifyIcon.Icon")));
+            this.notifyIcon.Text = "Email Notifier";
+            this.notifyIcon.DoubleClick += new System.EventHandler(this.NotifyIcon_DoubleClick);
             // 
             // toolStrip1
             // 
@@ -142,7 +142,7 @@
         }
 
         #endregion
-        private System.Windows.Forms.NotifyIcon notifyIcon1;
+        private System.Windows.Forms.NotifyIcon notifyIcon;
         private System.Windows.Forms.ToolStrip toolStrip1;
         private System.Windows.Forms.ToolStripButton checkForEmailsButton;
         private System.Windows.Forms.ToolStripButton editAccountsButton;

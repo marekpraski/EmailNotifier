@@ -117,11 +117,11 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <metadata name="notifyIcon1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+  <metadata name="notifyIcon.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>17, 17</value>
   </metadata>
   <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-  <data name="notifyIcon1.Icon" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+  <data name="notifyIcon.Icon" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         AAABAAEAlnUAAAEAIACEGwEAFgAAACgAAACWAAAA6gAAAAEAIAAAAAAAOBIBANcNAADXDQAAAAAAAAAA
         AAAADDsOABZCFgMcRycHIEtDCCJMaQkjTZQIIky7ByBK1QQdSOYBGUXwABVC9wATQPwAET7/ABE+/wAR
@@ -1337,7 +1337,7 @@
 </value>
   </data>
   <metadata name="toolStrip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-    <value>130, 17</value>
+    <value>123, 17</value>
   </metadata>
   <data name="checkForEmailsButton.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
@@ -1364,14 +1364,14 @@
   <data name="showNewEmailsButton.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
-        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAF/SURBVDhPY8AHDgsLz9sjJjYNyiUKMNrb2ws4Ozvr7hcR
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAF+SURBVDhPY8AHDgsLz9sjJjYNyiUKMNrb2ws4Ozvr7hcR
         efqfgeE/CF/g53+TamJiCpKDqsMOgAokYJpwYVdXV26ocgT4x8AgvEROrgWm6PatO/+fPnmGgWHyGyUl
-        e4E0E1gz0FaNBxwcX94yM/+9Y2H5EaQAWTEMw8T2V1c/vM/B8fsdK+v3AiMjI4YfjIz/t8fE/H/x8BFc
-        EYi+dfM2Cn7/7gNY7sP7j/9fvHj5/3BAAJgPhBAbLufk/H/y+CncAJg4DMPEYAbBMMMfIHGoqgpFEGQQ
-        yCZkjKzxCyvr/yOdXWA2w28gAVOwZ94CuKLDvX1gMWSN7zk5/++dPff/+1dvwHrABvwFEh+gAmCD3r7/
-        f7a4BK4JhEE27pkzD2wYTB3cAGAU/v/w5h2KBAiDFB9raf1/YMo0uI3oGGEAFkliMHUMAIfB67f/P4D8
-        h+4VYHiAMbIYEgYbACIoweDkDAJAFg/QO6pALAbE3EAsAxRjAWJGIGYD0VClSICBAQAFdVNV88d1cQAA
-        AABJRU5ErkJggg==
+        e4E0E1gz0FaN+xwcX94wM/+9Y2H5EaQAWTEMw8T2V1c/BKr//Y6V9XuBkZERww9Gxv/bY2L+v3j4CK4I
+        RN+6eRsFv3/3ASz34f3H/y9evPx/OCAAzAdCiA2Xc3L+P3n8FG4ATByGYWIwg2CY4Q+QOFRVhSIIMghk
+        EzJG1viFlfX/kc4uMJvhN5CAKdgzbwFc0eHePrAYssb3nJz/986e+//9qzdgPWAD/gKJD1ABsEFv3/8/
+        W1wC1wTCIBv3zJkHNgymDm4AMAr/f3jzDkUChEGKj7W0/j8wZRrcRnSMMACLJDGYOgaAw+D12/8fQP5D
+        9wowPMAYWQwJgw0AEZRgcHIGASCLB+gdVSAWA2JuIJYBirEAMSMQs4FoqFIkwMAAAP9cU1O4hxMhAAAA
+        AElFTkSuQmCC
 </value>
   </data>
   <data name="showAllEmailsButton.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
@@ -1393,9 +1393,9 @@
 </value>
   </data>
   <metadata name="checkEmailsTimer.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-    <value>235, 17</value>
+    <value>228, 17</value>
   </metadata>
   <metadata name="toggleNotifyiconTimer.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-    <value>383, 17</value>
+    <value>376, 17</value>
   </metadata>
 </root>

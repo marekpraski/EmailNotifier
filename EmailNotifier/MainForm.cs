@@ -108,7 +108,7 @@ namespace EmailNotifier
                     }
                 }
                 if (messagesReceived)
-                    saveDataToFile(ProgramSettings.fileSavePath + ProgramSettings.emailDataFileName);
+                    saveDataToFile();
             }
         }
 
@@ -120,33 +120,39 @@ namespace EmailNotifier
         #region Region - interakcja użytkownika
 
 
+        /// <summary>
+        /// minimalizacja okna powoduje pojawienie się ikony na pasku oraz uruchomienie timera odpowiedzialnego za automatyczne sprawdzanie poczty
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void MainForm_Resize(object sender, EventArgs e)
-        {
-            //if the form is minimized  
-            //hide it from the task bar  
-            //and show the system tray icon (represented by the NotifyIcon control)  
+        { 
             if (this.WindowState == FormWindowState.Minimized)
             {
                 Hide();
-                notifyIcon1.Visible = true;
-                notifyIcon1.ShowBalloonTip(1000);
+                notifyIcon.Visible = true;
+                notifyIcon.ShowBalloonTip(1000);
                 checkEmailsTimer.Start();
             }
         }
 
 
-
+        /// <summary>
+        /// powrót głównego okna do normalnej postaci oraz zatrzymanie timera odpowiedzialnego za automatyczne sprawdzanie poczty
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void NotifyIcon_DoubleClick(object sender, EventArgs e)
         {
             Show();
             this.WindowState = FormWindowState.Normal;
-            notifyIcon1.Visible = false;
+            notifyIcon.Visible = false;
             checkEmailsTimer.Stop();
         }
 
 
         /// <summary>
-        /// ujednolicam zawartość słowników kont: przechowywanego w tym oknie ze słownikiem konfiguracji kont otrzymanym z okna wczytywania konfiguracji
+        /// ujednolica zawartość słowników kont: przechowywanego w tym oknie ze słownikiem konfiguracji kont otrzymanym z okna wczytywania konfiguracji
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="args"></param>
@@ -205,22 +211,16 @@ namespace EmailNotifier
         }
 
 
+        /// <summary>
+        /// ręczne sprawdzanie poczty
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void checkForEmailsButton_Click(object sender, EventArgs e)
         {
-            bool messagesReceived = false;
-
-            foreach (string mailboxName in this.mailBoxes.Keys)
+            if (checkForEmails())
             {
-                EmailAccount mailbox;
-                mailBoxes.TryGetValue(mailboxName, out mailbox);
-                IEmailMessage newestEmail = mailbox.hasNewEmails ? mailbox.newEmailsList.First.Value : mailbox.allEmailsList.First.Value;
-
-                if (getMessages(mailbox, newestEmail))
-                    messagesReceived = true;
-            }
-            if (messagesReceived)
-            {
-                saveDataToFile(ProgramSettings.fileSavePath + ProgramSettings.emailDataFileName);
+                saveDataToFile();
                 displayNewMessages();
             }
             else
@@ -228,6 +228,7 @@ namespace EmailNotifier
                 MyMessageBox.display("no new messages");
             }
         }
+
 
 
         private void ShowNewEmailsButton_Click(object sender, EventArgs e)
@@ -254,14 +255,14 @@ namespace EmailNotifier
 
 
         /// <summary>
-        /// uruchamia funkcję zamykania okna wyświetlania emaili, jeżeli jest ono otwarte
+        /// uruchamia funkcję zamykania okna wyświetlania emaili, jeżeli jest ono otwarte, w celu zapisania ewentualnych zmian
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             if(emailsDisplayed != EmailListType.none)
-            closeEmailsDisplayWindow();
+                closeEmailsDisplayWindow();
         }
 
 
@@ -273,13 +274,24 @@ namespace EmailNotifier
 
         private void CheckEmailsTimer_Tick(object sender, EventArgs e)
         {
+            //if (checkForEmails())
+            //{
+                //saveDataToFile();
+                notifyUser();
 
+            //}
+            //notifyIcon.Icon = Properties.Resources.mailBlack;
+        }
+
+        private void notifyUser()
+        {
+            MyMessageBox.displayAndClose("you've got mail!");
         }
 
         #endregion
 
 
-       
+
 
 
         /// <summary>
@@ -361,6 +373,12 @@ namespace EmailNotifier
                 serializedMemoryStream.Close();
                 compressedStream.Close();
             }            
+        }
+
+        private void saveDataToFile()
+        {
+            string fileName = (ProgramSettings.fileSavePath + ProgramSettings.emailDataFileName);
+            saveDataToFile(fileName);
         }
 
 
@@ -567,7 +585,7 @@ namespace EmailNotifier
                 if (numberOfCheckedEmails > 0)
                 {                                                   //aktualizuję słownik i zapisuję zmiany na dysk
                     updateNewEmailsDict();
-                    saveDataToFile(ProgramSettings.fileSavePath + ProgramSettings.emailDataFileName);
+                    saveDataToFile();
                 }
             }
 
@@ -583,6 +601,27 @@ namespace EmailNotifier
         }
 
         #endregion
+
+
+
+        #region Region - czytanie czytanie emaili z serwisu
+
+
+        private bool checkForEmails()
+        {
+            bool messagesReceived = false;
+
+            foreach (string mailboxName in this.mailBoxes.Keys)
+            {
+                EmailAccount mailbox;
+                mailBoxes.TryGetValue(mailboxName, out mailbox);
+                IEmailMessage newestEmail = mailbox.hasNewEmails ? mailbox.newEmailsList.First.Value : mailbox.allEmailsList.First.Value;
+
+                if (getMessages(mailbox, newestEmail))
+                    messagesReceived = true;
+            }
+            return messagesReceived;
+        }
 
 
         private async Task<bool> getMessagesAsync(EmailAccount mailbox, int numberOfMessages=4)
@@ -605,6 +644,8 @@ namespace EmailNotifier
                 mailbox.addEmail(messages);
             return messages.Count > 0;
         }
+
+        #endregion
 
 
     }
