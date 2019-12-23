@@ -39,6 +39,7 @@
             this.hideEmailsButton = new System.Windows.Forms.ToolStripButton();
             this.checkEmailsTimer = new System.Windows.Forms.Timer(this.components);
             this.toggleNotifyiconTimer = new System.Windows.Forms.Timer(this.components);
+            this.settingsButton = new System.Windows.Forms.ToolStripButton();
             this.toolStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -57,7 +58,8 @@
             this.editAccountsButton,
             this.showNewEmailsButton,
             this.showAllEmailsButton,
-            this.hideEmailsButton});
+            this.hideEmailsButton,
+            this.settingsButton});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.Size = new System.Drawing.Size(214, 25);
@@ -120,13 +122,24 @@
             // 
             // checkEmailsTimer
             // 
-            this.checkEmailsTimer.Interval = 600000;
+            this.checkEmailsTimer.Interval = 100;
             this.checkEmailsTimer.Tick += new System.EventHandler(this.CheckEmailsTimer_Tick);
             // 
             // toggleNotifyiconTimer
             // 
-            this.toggleNotifyiconTimer.Interval = 20000;
+            this.toggleNotifyiconTimer.Interval = 100;
             this.toggleNotifyiconTimer.Tick += new System.EventHandler(this.ToggleNotifyiconTimer_Tick);
+            // 
+            // settingsButton
+            // 
+            this.settingsButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.settingsButton.Image = ((System.Drawing.Image)(resources.GetObject("settingsButton.Image")));
+            this.settingsButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.settingsButton.Name = "settingsButton";
+            this.settingsButton.Size = new System.Drawing.Size(23, 22);
+            this.settingsButton.Text = "toolStripButton1";
+            this.settingsButton.ToolTipText = "settings";
+            this.settingsButton.Click += new System.EventHandler(this.SettingsButton_Click);
             // 
             // MainForm
             // 
@@ -156,6 +169,7 @@
         private System.Windows.Forms.ToolStripButton showAllEmailsButton;
         private System.Windows.Forms.Timer checkEmailsTimer;
         private System.Windows.Forms.Timer toggleNotifyiconTimer;
+        private System.Windows.Forms.ToolStripButton settingsButton;
     }
 }
 

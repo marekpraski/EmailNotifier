@@ -15,20 +15,22 @@ namespace EmailNotifier
         public delegate void saveButtonClickedEventHandler(object sender, ConfigurationFormEventArgs args);
         public event saveButtonClickedEventHandler saveButtonClickedEvent;
 
-        private readonly Dictionary<string, IEmailAccountConfiguration> emailAccountConfigurations = new Dictionary<string, IEmailAccountConfiguration>();
+        private readonly Dictionary<string, IEmailAccountConfiguration> accountConfigsDict = new Dictionary<string, IEmailAccountConfiguration>();
 
-        private AccountConfigurationControl accountConfigurationControl;
+        private string[] authorisationChoices = { "yes", "no" };
+
+        private IEmailAccountConfiguration accountConfig;
 
         public ConfigurationForm()
         {
             InitializeComponent();
+            populateAuthorisationCombo();
+            populateAccountNamesCombo();
         }
 
-        public ConfigurationForm(Dictionary<string, IEmailAccountConfiguration> emailAccountConfigs)
+        public ConfigurationForm(Dictionary<string, IEmailAccountConfiguration> accountConfigsDict) : this()
         {
-            this.emailAccountConfigurations = emailAccountConfigs;
-            InitializeComponent();
-            setupAccountConfigurationControl();
+            this.accountConfigsDict = accountConfigsDict;
         }
 
 
@@ -37,7 +39,7 @@ namespace EmailNotifier
         private void AddNewAccountButton_Click(object sender, EventArgs e)
         {
             addOrUpdateAccountConfiguration();
-            accountConfigurationControl.Clear();
+            ClearThisForm();
         }
 
 
@@ -46,9 +48,9 @@ namespace EmailNotifier
             MyMessageBoxResults result = MyMessageBox.display("Usunąć zaznaczone konto?", MyMessageBoxType.YesNo);
             if(result == MyMessageBoxResults.Yes)
             {
-                string accountName = accountConfigurationControl.getAccountName();
-                emailAccountConfigurations.Remove(accountName);
-                accountConfigurationControl.Clear();
+                string accountName = getAccountUrl();
+                accountConfigsDict.Remove(accountName);
+                ClearThisForm();
             }
         }
 
@@ -59,19 +61,14 @@ namespace EmailNotifier
             {
                 if (saveButtonClickedEvent != null)
                 {
-                    if (addOrUpdateAccountConfiguration() || emailAccountConfigurations.Count > 0)
+                    if (addOrUpdateAccountConfiguration() || accountConfigsDict.Count > 0)
                     {
                         ConfigurationFormEventArgs args = new ConfigurationFormEventArgs();
-                        args.emailAccountConfigs = this.emailAccountConfigurations;
+                        args.emailAccountConfigs = this.accountConfigsDict;
                         saveButtonClickedEvent(this, args);
                     }
                 }
 
-            }
-            catch (InvalidEmailAccountException ex)
-            {
-                
-                MyMessageBox.display(ex.message + "\r\n" + ex.Source, MyMessageBoxType.Error);
             }
             catch(ArgumentException exc)
             {
@@ -84,30 +81,48 @@ namespace EmailNotifier
             this.Close();
         }
 
+
+
+        private void accountNameComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            string accountName = accountNameComboBox.Text;
+
+            accountConfigsDict.TryGetValue(accountName, out accountConfig);
+            serverUrlTextBox.Text = accountConfig.receiveServer.url;
+            portTextBox.Text = accountConfig.receiveServer.port.ToString();
+            authorisationComboBox.SelectedIndex = accountConfig.receiveServer.useAuthorisation == true ? 0 : 1;
+
+            userNameTextBox.Text = accountConfig.username;
+            passwordTextBox.Text = accountConfig.password;
+        }
+
+
+        private void urlHelpLabel_MouseEnter(object sender, EventArgs e)
+        {
+            displayTooltip(sender, "choose from combo or type in");
+
+        }
+
+
+        private void PortHelpLabel_MouseEnter(object sender, EventArgs e)
+        {
+            displayTooltip(sender, "995 - POP3 TSL authentication required \r\n110 - POP3 no TSL authentication");
+        }
+
+
+
         #endregion
 
-
-
-        private void setupAccountConfigurationControl()
-        {
-            this.accountConfigurationControl = new AccountConfigurationControl(emailAccountConfigurations);
-            this.accountConfigurationControl.Location = new System.Drawing.Point(12, 28);
-            this.accountConfigurationControl.Name = "accountConfiguration1";
-            this.accountConfigurationControl.Size = new System.Drawing.Size(369, 149);
-            this.accountConfigurationControl.TabIndex = 0;
-
-            this.Controls.Add(this.accountConfigurationControl);
-        }
 
 
 
         private bool addOrUpdateAccountConfiguration()
         {
-            IEmailAccountConfiguration accountConfig;
-            string accountName = accountConfigurationControl.getAccountName();
-            if (emailAccountConfigurations.ContainsKey(accountName))
+            //IEmailAccountConfiguration accountConfig;
+            string accountName = getAccountUrl();
+            if (accountConfigsDict.ContainsKey(accountName))
             {
-                emailAccountConfigurations.TryGetValue(accountName, out accountConfig);
+                accountConfigsDict.TryGetValue(accountName, out accountConfig);
                 setAccountParameters(accountConfig);
                 return true;
             }
@@ -116,7 +131,7 @@ namespace EmailNotifier
             {
                 accountConfig = new EmailAccountConfiguration();
                 setAccountParameters(accountConfig);
-                emailAccountConfigurations.Add(accountName, accountConfig);
+                accountConfigsDict.Add(accountName, accountConfig);
 
                 return true;
             }
@@ -125,12 +140,88 @@ namespace EmailNotifier
 
         private void setAccountParameters(IEmailAccountConfiguration emailConfig)
         {
-            emailConfig.ReceivePassword = accountConfigurationControl.getPassword();
-            emailConfig.ReceivePort = accountConfigurationControl.getPort();
-            emailConfig.ReceiveServer = accountConfigurationControl.getServerName();
-            emailConfig.ReceiveUsername = accountConfigurationControl.getUserName();
-            emailConfig.ReceiveUseAuthorisation = accountConfigurationControl.getAuthorisation();
+            var receiveServer = new EmailServer();
+
+            receiveServer.serverType = ServerType.POP3;
+            receiveServer.url = serverUrlTextBox.Text;
+            receiveServer.port = getPort();
+            receiveServer.useAuthorisation = getAuthorisation();
+
+            emailConfig.receiveServer = receiveServer;
+            emailConfig.username = userNameTextBox.Text;
+            emailConfig.password = passwordTextBox.Text;
         }
+
+
+
+
+
+
+        private void populateAccountNamesCombo()
+        {
+            accountNameComboBox.DataSource = accountConfigsDict.Keys.ToList();
+        }
+
+        private void populateAuthorisationCombo()
+        {
+            authorisationComboBox.DataSource = authorisationChoices;
+        }
+
+        public int getPort()
+        {
+            int portNr;
+            bool parsed = int.TryParse(portTextBox.Text, out portNr);
+
+            if (!parsed)
+            {
+                throw new ArgumentException("Nazwa portu musi być liczbą naturalną");
+            }
+            return portNr;
+
+        }
+
+
+        public bool getAuthorisation()
+        {
+            return true ? authorisationComboBox.SelectedIndex == 0 : false;
+        }
+
+        public string getAccountUrl()
+        {
+            return accountNameComboBox.Text;
+        }
+
+        public void ClearThisForm()
+        {
+            populateAccountNamesCombo();        //odświeżam listę w kombo
+            accountNameComboBox.Text = "";
+            serverUrlTextBox.Text = "";
+            userNameTextBox.Text = "";
+            authorisationComboBox.SelectedIndex = 0;
+            passwordTextBox.Text = "";
+            portTextBox.Text = "";
+            accountNameComboBox.Focus();
+        }
+
+
+
+        private void displayTooltip(object sender, string message)
+        {
+            Control control = sender as Control;
+            // Create the ToolTip and associate with the Form container.
+            ToolTip toolTip1 = new ToolTip();
+
+            // Set up the delays for the ToolTip.
+            toolTip1.AutoPopDelay = 5000;
+            toolTip1.InitialDelay = 100;
+            toolTip1.ReshowDelay = 500;
+            // Force the ToolTip text to be displayed whether or not the form is active.
+            toolTip1.ShowAlways = true;
+
+            // Set up the ToolTip text for the Button and Checkbox.
+            toolTip1.SetToolTip(control, message);
+        }
+
 
     }
 }

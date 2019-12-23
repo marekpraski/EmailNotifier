@@ -26,11 +26,16 @@ namespace EmailNotifier
         {
             InitializeComponent();
             initialSetup();
+
+            //w RELEASE startuje zminimalizowany
+#if DEBUG
+#else
             if (mailBoxes.Count > 0)
             {
                 this.WindowState = FormWindowState.Minimized;
                 this.ShowInTaskbar = false;
             }
+#endif
         }
 
 
@@ -40,6 +45,16 @@ namespace EmailNotifier
         {
             assertDataDirectoryExists();
             setupMailboxes();
+            setTimers();
+        }
+
+        private void setTimers()
+        {
+            //zamieniam minuty na milisekundy, nie mniej niż 5 minut
+            this.checkEmailsTimer.Interval = ProgramSettings.checkEmailTimespan * 60000 < 300000 ? 300000 : ProgramSettings.checkEmailTimespan * 60000;
+
+            //zamieniam sekundy na milisekundy, nie mniej niż 20 sekund
+            this.toggleNotifyiconTimer.Interval = ProgramSettings.showNotificationTimespan * 1000 < 20000 ? 20000 : ProgramSettings.showNotificationTimespan * 1000;
         }
 
 
@@ -200,9 +215,9 @@ namespace EmailNotifier
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private async void checkForEmailsButton_Click(object sender, EventArgs e)
+        private void checkForEmailsButton_Click(object sender, EventArgs e)
         {
-            if (await checkForEmailsAsync())
+            if (checkForEmailsAsync())
             {
                 saveDataToFile();
                 displayNewMessages();
@@ -238,6 +253,16 @@ namespace EmailNotifier
         }
 
 
+        private void SettingsButton_Click(object sender, EventArgs e)
+        {
+            //ProgramSettings ps = new ProgramSettings();
+            SettingsForm settingsForm = new SettingsForm(ProgramSettings.checkEmailTimespan, ProgramSettings.showNotificationTimespan, ProgramSettings.numberOfEmailsKept);
+            settingsForm.saveSettingsEvent += setProgramSettings;
+            settingsForm.ShowDialog();
+            settingsForm.saveSettingsEvent -= setProgramSettings;
+        }
+
+
         /// <summary>
         /// uruchamia funkcję zamykania okna wyświetlania emaili, jeżeli jest ono otwarte, w celu zapisania ewentualnych zmian
         /// </summary>
@@ -263,9 +288,9 @@ namespace EmailNotifier
 
         #region Region - automat sprawdzający pocztę
 
-        private async void CheckEmailsTimer_Tick(object sender, EventArgs e)
+        private void CheckEmailsTimer_Tick(object sender, EventArgs e)
         {
-            if (await checkForEmailsAsync())
+            if (checkForEmailsAsync())
             {
                 saveDataToFile();
                 this.newEmailsReceived = true;
@@ -303,6 +328,13 @@ namespace EmailNotifier
 
 
 
+        private void setProgramSettings(object sender, SettingsArgs args)
+        {
+            ProgramSettings.numberOfEmailsKept = args.emailNumberKept;
+            ProgramSettings.checkEmailTimespan = args.emailCheckTimespan;
+            ProgramSettings.showNotificationTimespan = args.notificationBubbleTimespan;
+            setTimers();
+        }
 
 
         /// <summary>
@@ -332,29 +364,48 @@ namespace EmailNotifier
         /// <param name="fileName"></param>
         private void readDataFromFile(string fileName)
         {
-            using (FileStream fileStream = new FileStream(fileName, FileMode.Open))
+            DataBundle dataBundle;
+
+            try
             {
-                byte[] buffer = new byte[fileStream.Length];
-                using (BinaryReader binReader = new BinaryReader(fileStream))
+                using (FileStream fileStream = new FileStream(fileName, FileMode.Open))
                 {
-                    buffer = binReader.ReadBytes(buffer.Length);
+                    byte[] buffer = new byte[fileStream.Length];
+                    using (BinaryReader binReader = new BinaryReader(fileStream))
+                    {
+                        buffer = binReader.ReadBytes(buffer.Length);
+                    }
+
+                    MemoryStream originalStream = new MemoryStream(buffer);
+                    MemoryStream decompressedStream = new MemoryStream();
+
+                    using (GZipStream gzStream = new GZipStream(originalStream, CompressionMode.Decompress))
+                    {
+                        gzStream.CopyTo(decompressedStream);
+                    }
+
+                    originalStream.Close();
+                    BinaryFormatter formatter = new BinaryFormatter();
+                    decompressedStream.Position = 0;
+                    dataBundle = (DataBundle)formatter.Deserialize(decompressedStream);
+                    decompressedStream.Close();
                 }
 
-                MemoryStream originalStream = new MemoryStream(buffer);
-                MemoryStream decompressedStream = new MemoryStream();
+                this.mailBoxes = dataBundle.mailBoxes;
+                ProgramSettings.checkEmailTimespan = dataBundle.checkEmailTimespan;
+                ProgramSettings.numberOfEmailsKept = dataBundle.numberOfEmailsKept;
+                ProgramSettings.showNotificationTimespan = dataBundle.showNotificationTimespan;
 
-                using (GZipStream gzStream = new GZipStream(originalStream, CompressionMode.Decompress))
-                {
-                    gzStream.CopyTo(decompressedStream);
-                }
-
-                originalStream.Close();
-                BinaryFormatter formatter = new BinaryFormatter();
-                decompressedStream.Position = 0;
-                this.mailBoxes = (Dictionary<string,EmailAccount>)formatter.Deserialize(decompressedStream);
-                decompressedStream.Close();
             }
+            catch (System.IO.InvalidDataException exc)
+            {
+                MyMessageBox.display("błąd odczytu z pliku danych\r\n" + exc.Message +"\r\n"+ exc.StackTrace, MyMessageBoxType.Error);
+            }
+            catch (System.InvalidCastException ex)
+            {
 
+                MyMessageBox.display("błąd odczytu z pliku danych\r\n" + ex.Message + "\r\n" + ex.StackTrace, MyMessageBoxType.Error);
+            }
         }
 
 
@@ -364,12 +415,19 @@ namespace EmailNotifier
        /// <param name="fileName"></param>
         private void saveDataToFile(string fileName)
         {
+            DataBundle dataBundle = new DataBundle(mailBoxes)
+            {
+                numberOfEmailsKept = ProgramSettings.numberOfEmailsKept,
+                showNotificationTimespan = ProgramSettings.showNotificationTimespan,
+                checkEmailTimespan = ProgramSettings.checkEmailTimespan
+            };
+
             using (FileStream fileStream = new FileStream(fileName, FileMode.Create))
             {
                 MemoryStream serializedMemoryStream = new MemoryStream();
                 MemoryStream compressedStream = new MemoryStream();
                 BinaryFormatter formatter = new BinaryFormatter();
-                formatter.Serialize(serializedMemoryStream, this.mailBoxes);
+                formatter.Serialize(serializedMemoryStream, dataBundle);
 
                 using (GZipStream gzStream = new GZipStream(compressedStream, CompressionMode.Compress))
                 {
@@ -621,37 +679,45 @@ namespace EmailNotifier
         #region Region - czytanie emaili z serwisu
 
 
-        private async Task<bool> checkForEmailsAsync()
+        private bool checkForEmailsAsync()
         {
             bool messagesReceived = false;
+            
 
             foreach (string mailboxName in this.mailBoxes.Keys)
             {
-                EmailAccount mailbox;
-                mailBoxes.TryGetValue(mailboxName, out mailbox);
-
-                if (mailbox.allEmailsList.Count == 0)
+                try
                 {
-                    if (await getMessagesAsync(mailbox))
-                        messagesReceived = true;
+                    EmailAccount mailbox;
+                    mailBoxes.TryGetValue(mailboxName, out mailbox);
+
+                    if (mailbox.allEmailsList.Count == 0)
+                    {
+                        if (getMessagesAsync(mailbox))
+                            messagesReceived = true;
+                    }
+                    else
+                    {
+                        IEmailMessage newestEmail = mailbox.hasNewEmails ? mailbox.newEmailsList.First.Value : mailbox.allEmailsList.First.Value;
+
+                        if (getMessagesAsync(mailbox, newestEmail))
+                            messagesReceived = true;
+                    }
                 }
-                else
+                catch (EmailServiceException e)
                 {
-                    IEmailMessage newestEmail = mailbox.hasNewEmails ? mailbox.newEmailsList.First.Value : mailbox.allEmailsList.First.Value;
-
-                    if (await getMessagesAsync(mailbox, newestEmail))
-                        messagesReceived = true;
+                    handleEmailServiceException(e);
                 }
             }
             return messagesReceived;
         }
 
 
-        private async Task<bool> getMessagesAsync(EmailAccount mailbox, int numberOfMessages=4)
+        private bool getMessagesAsync(EmailAccount mailbox, int numberOfMessages=4)
         {
             IEmailAccountConfiguration emailConfiguration = mailbox.configuration;
             EmailService emailService = new EmailService(emailConfiguration);
-            LinkedList<IEmailMessage> messages = await emailService.ReceiveEmailsAsync(numberOfMessages);
+            LinkedList<IEmailMessage> messages = emailService.ReceiveEmailsAsync(numberOfMessages);
             if (messages.Count > 0)
             {
                 mailbox.addEmail(messages);
@@ -661,18 +727,29 @@ namespace EmailNotifier
         }
 
 
-        private async Task<bool> getMessagesAsync(EmailAccount mailbox, IEmailMessage email)
+        private bool getMessagesAsync(EmailAccount mailbox, IEmailMessage email)
         {
-
-            IEmailAccountConfiguration emailConfiguration = mailbox.configuration;
-            EmailService emailService = new EmailService(emailConfiguration);
-            LinkedList<IEmailMessage> messages = await emailService.ReceiveEmailsAsync(email);
-            if (messages.Count > 0)
-            {
-                mailbox.addEmail(messages);
-                return true;
-            }
+                IEmailAccountConfiguration emailConfiguration = mailbox.configuration;
+                EmailService emailService = new EmailService(emailConfiguration);
+                LinkedList<IEmailMessage> messages = emailService.ReceiveEmailsAsync(email);
+                if (messages.Count > 0)
+                {
+                    mailbox.addEmail(messages);
+                    return true;
+                }
+            
             return false;
+        }
+
+        private void handleEmailServiceException(Exception e)
+        {
+            MyMessageBox.displayAndClose(e.Message + "    " + e.InnerException + "\r\nsee the errorlog file for details", 30);
+            //string errorLogFileName = "emailNotifierError.log";
+            //using (FileStream file = new FileStream(errorLogFileName, FileMode.Append))
+            //{
+            //    StreamWriter writer = new StreamWriter(file);
+            //    writer.Write(DateTime.Now.ToString() + "\r\n" + e.Message + "\r\n" + e.InnerException + "\r\n" + e.Source + "\r\n" + e.StackTrace + "\r\n" + "\r\n");
+            //}
         }
 
 

@@ -33,6 +33,7 @@ namespace EmailNotifier
         private int formVerticalPadding = 50;       //suma obrzeży (górnego i dolnego) formatki
         private int formControlsWidth = 170;        //szerokość przycisków minimalizacji i zamykania formatki po prawej plus ikona po lewej
         private int maxTextBoxWidth = 800;           //maksymalna szerokość pola tekstowego, jeżeli nie określę to rośnie w nieskończoność gdy wiadomość jest jedną linią
+        private int maxTextBoxHeigth = 700;
         private int textPadding = 30;               //odległość tekstu w textboxie od krawędzi tekstboxu, używam obliczając wysokość tekstboxa gdy występują długie linie
 
         public MyMessageBox(string message, MyMessageBoxType mbType)
@@ -226,7 +227,7 @@ namespace EmailNotifier
         {
             int[] size = getTextBoxSize();
             textBox1.Width = size[0];
-            textBox1.Height = size[1];
+            textBox1.Height = size[1] < maxTextBoxHeigth ? size[1] : maxTextBoxHeigth;
         }
 
         

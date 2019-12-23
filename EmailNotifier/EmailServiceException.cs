@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace EmailNotifier
 {
-    class ConfigurationFormReader : IConfigurationReader
+    class EmailServiceException : Exception
     {
-        public EmailAccountConfiguration getConfiguration()
+        public EmailServiceException(string message, Exception innerException) : base(message, innerException)
         {
-            throw new NotImplementedException();
+
         }
     }
 }
