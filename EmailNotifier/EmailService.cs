@@ -32,7 +32,7 @@ namespace EmailNotifier
         /// <param name="numberOfMessagesToReceive"> liczba wiadomości do przeczytania z serwera</param>
         /// <returns></returns>
 
-        public LinkedList<IEmailMessage> ReceiveEmailsAsync(int numberOfMessagesToReceive)
+        public LinkedList<IEmailMessage> ReceiveEmails(int numberOfMessagesToReceive)
         {            
             switch (emailAccountConfiguration.receiveServer.serverType)
             {
@@ -40,7 +40,7 @@ namespace EmailNotifier
                     GetMessagesImap(numberOfMessagesToReceive);
                     break;
                 case ServerType.POP3:
-                    GetMessagesPop3Async(numberOfMessagesToReceive);
+                    GetMessagesPop3(numberOfMessagesToReceive);
                     break;
             }
 
@@ -53,7 +53,7 @@ namespace EmailNotifier
         /// </summary>
         /// <param name="newestEmail"></param>
         /// <returns></returns>
-        public LinkedList<IEmailMessage> ReceiveEmailsAsync(IEmailMessage newestEmail)
+        public LinkedList<IEmailMessage> ReceiveEmails(IEmailMessage newestEmail)
         {
             string newestEmailId = newestEmail.messageId;
             DateTime newestEmailDateTime = newestEmail.messageDateTime;
@@ -63,7 +63,7 @@ namespace EmailNotifier
                     GetMessagesImap(newestEmailId, newestEmailDateTime);
                     break;
                 case ServerType.POP3:
-                    GetMessagesPop3Async(newestEmailId, newestEmailDateTime);
+                    GetMessagesPop3(newestEmailId, newestEmailDateTime);
                     break;
             }
 
@@ -72,7 +72,7 @@ namespace EmailNotifier
 
 
 
-        private void GetMessagesPop3Async(int numberOfMessagesToReceive)
+        private void GetMessagesPop3(int numberOfMessagesToReceive)
         {
             try
             {
@@ -138,7 +138,7 @@ namespace EmailNotifier
 
 
  
-        private void GetMessagesPop3Async(string newestEmailId, DateTime newestEmailDateTime)
+        private void GetMessagesPop3(string newestEmailId, DateTime newestEmailDateTime)
         {
             try
             {
@@ -159,7 +159,10 @@ namespace EmailNotifier
                             emailMessage.messageId = message.MessageId;
                             emailMessage.FromAddress = message.From.ToString();
                             emailMessage.messageDateTime = message.Date.UtcDateTime;
-                            if (emailMessage.messageId != newestEmailId)
+
+                            //sprawdzenie po ID wiadomości działa tylko wtedy, gdy w międzyczasie nie usunąłem z serwera wiadomości nowszych, niż ostatnio wczytana
+                            //dlatego sprawdzam też po dacie, wczytuję tylko wiadomości młodsze od ostatniej, którą mam w bazie
+                            if (emailMessage.messageId != newestEmailId && emailMessage.messageDateTime >= newestEmailDateTime)
                             {
                                 this.emailsReceived.AddLast(emailMessage);
                             }
@@ -167,8 +170,7 @@ namespace EmailNotifier
                         }
                         //wiadomości czytam od najnowszej, aż dojdę do tej, którą już mam w bazie. Ale ...
                         //wiadomość może być usunięta na serwerze zanim została zaczytana w programie, więc wiadomości nie będzie wtedy w bazie programu
-                        //dlatego sprawdzam też po dacie, wczytuję tylko wiadomości młodsze od ostatniej, którą mam w bazie
-                        while (!emailMessage.messageId.Equals(newestEmailId) || emailMessage.messageDateTime > newestEmailDateTime);
+                        while (emailMessage.messageDateTime > newestEmailDateTime);
                     }
                 }
             }
@@ -232,27 +234,6 @@ namespace EmailNotifier
 
         }
 
-
-        /// <summary>
-        /// dodana w celu implementacji interfejsu, wyrzuca NotImplementedException
-        /// </summary>
-        /// <param name="numberOfMessages"></param>
-        /// <returns></returns>
-        public LinkedList<IEmailMessage> ReceiveEmails(int numberOfMessages)
-        {
-            throw new NotImplementedException();
-
-        }
-
-        /// <summary>
-        /// dodana w celu implementacji interfejsu, wyrzuca NotImplementedException
-        /// </summary>
-        /// <param name="lastEmail"></param>
-        /// <returns></returns>
-        public LinkedList<IEmailMessage> ReceiveEmails(IEmailMessage lastEmail)
-        {
-            throw new NotImplementedException();
-        }
     }
 }
 

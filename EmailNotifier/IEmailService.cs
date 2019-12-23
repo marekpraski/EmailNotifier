@@ -11,8 +11,7 @@ namespace EmailNotifier
 
 
         void SendEmails(IList<IEmailMessage> emailMessages);
-        LinkedList<IEmailMessage> ReceiveEmails(int numberOfMessages);
-        LinkedList<IEmailMessage> ReceiveEmailsAsync(int numberOfMessagesToReceive);
+        LinkedList<IEmailMessage> ReceiveEmails(int numberOfMessagesToReceive);
         LinkedList<IEmailMessage> ReceiveEmails(IEmailMessage lastEmail);
 
 

@@ -717,7 +717,7 @@ namespace EmailNotifier
         {
             IEmailAccountConfiguration emailConfiguration = mailbox.configuration;
             EmailService emailService = new EmailService(emailConfiguration);
-            LinkedList<IEmailMessage> messages = emailService.ReceiveEmailsAsync(numberOfMessages);
+            LinkedList<IEmailMessage> messages = emailService.ReceiveEmails(numberOfMessages);
             if (messages.Count > 0)
             {
                 mailbox.addEmail(messages);
@@ -731,7 +731,7 @@ namespace EmailNotifier
         {
                 IEmailAccountConfiguration emailConfiguration = mailbox.configuration;
                 EmailService emailService = new EmailService(emailConfiguration);
-                LinkedList<IEmailMessage> messages = emailService.ReceiveEmailsAsync(email);
+                LinkedList<IEmailMessage> messages = emailService.ReceiveEmails(email);
                 if (messages.Count > 0)
                 {
                     mailbox.addEmail(messages);
