@@ -6,6 +6,7 @@ using System.IO.Compression;
 using System.Windows.Forms;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading.Tasks;
+using System.Net.NetworkInformation;
 
 namespace EmailNotifier
 {
@@ -217,14 +218,25 @@ namespace EmailNotifier
         /// <param name="e"></param>
         private void checkForEmailsButton_Click(object sender, EventArgs e)
         {
-            if (checkForEmailsAsync())
+            try
             {
-                saveDataToFile();
-                displayNewMessages();
+                if (emailsDisplayed != EmailListType.none)
+                {
+                    closeEmailsDisplayWindow();
+                }
+                if (checkForEmails())
+                {
+                    saveDataToFile();
+                    displayNewMessages();
+                }
+                else
+                {
+                    MyMessageBox.displayAndClose("no new messages");
+                }
             }
-            else
+            catch(ArgumentException exc)
             {
-                MyMessageBox.display("no new messages");
+                MyMessageBox.display(exc.Message, MyMessageBoxType.Error);
             }
         }
 
@@ -290,7 +302,7 @@ namespace EmailNotifier
 
         private void CheckEmailsTimer_Tick(object sender, EventArgs e)
         {
-            if (checkForEmailsAsync())
+            if (checkForEmails())
             {
                 saveDataToFile();
                 this.newEmailsReceived = true;
@@ -605,9 +617,9 @@ namespace EmailNotifier
 
             columnHeader1.Width = 150;
             columnHeader1.Text = "Date";
-            columnHeader2.Width = 250;
+            columnHeader2.Width = 300;
             columnHeader2.Text = "From";
-            columnHeader3.Width = 600;
+            columnHeader3.Width = 550;
             columnHeader3.Text = "Subject";
 
             return listView;
@@ -679,41 +691,47 @@ namespace EmailNotifier
         #region Region - czytanie emaili z serwisu
 
 
-        private bool checkForEmailsAsync()
+        private bool checkForEmails()
         {
             bool messagesReceived = false;
-            
 
-            foreach (string mailboxName in this.mailBoxes.Keys)
+            if (!NetworkInterface.GetIsNetworkAvailable())       //nowe wiadomości sprawdzam tylko wtedy gdy jest internet
             {
-                try
+                handleEmailServiceException(new EmailServiceException("brak internetu"));
+            }
+            else
+            {
+                foreach (string mailboxName in this.mailBoxes.Keys)
                 {
-                    EmailAccount mailbox;
-                    mailBoxes.TryGetValue(mailboxName, out mailbox);
-
-                    if (mailbox.allEmailsList.Count == 0)
+                    try
                     {
-                        if (getMessagesAsync(mailbox))
-                            messagesReceived = true;
-                    }
-                    else
-                    {
-                        IEmailMessage newestEmail = mailbox.hasNewEmails ? mailbox.newEmailsList.First.Value : mailbox.allEmailsList.First.Value;
+                        EmailAccount mailbox;
+                        mailBoxes.TryGetValue(mailboxName, out mailbox);
 
-                        if (getMessagesAsync(mailbox, newestEmail))
-                            messagesReceived = true;
+                        if (mailbox.allEmailsList.Count == 0)
+                        {
+                            if (getMessages(mailbox))
+                                messagesReceived = true;
+                        }
+                        else
+                        {
+                            IEmailMessage newestEmail = mailbox.hasNewEmails ? mailbox.newEmailsList.First.Value : mailbox.allEmailsList.First.Value;
+
+                            if (getMessages(mailbox, newestEmail))
+                                messagesReceived = true;
+                        }
                     }
-                }
-                catch (EmailServiceException e)
-                {
-                    handleEmailServiceException(e);
+                    catch (EmailServiceException e)
+                    {
+                        handleEmailServiceException(e);
+                    }
                 }
             }
             return messagesReceived;
         }
 
 
-        private bool getMessagesAsync(EmailAccount mailbox, int numberOfMessages=4)
+        private bool getMessages(EmailAccount mailbox, int numberOfMessages=4)
         {
             IEmailAccountConfiguration emailConfiguration = mailbox.configuration;
             EmailService emailService = new EmailService(emailConfiguration);
@@ -727,7 +745,7 @@ namespace EmailNotifier
         }
 
 
-        private bool getMessagesAsync(EmailAccount mailbox, IEmailMessage email)
+        private bool getMessages(EmailAccount mailbox, IEmailMessage email)
         {
                 IEmailAccountConfiguration emailConfiguration = mailbox.configuration;
                 EmailService emailService = new EmailService(emailConfiguration);
@@ -744,12 +762,13 @@ namespace EmailNotifier
         private void handleEmailServiceException(Exception e)
         {
             MyMessageBox.displayAndClose(e.Message + "    " + e.InnerException + "\r\nsee the errorlog file for details", 30);
-            //string errorLogFileName = "emailNotifierError.log";
-            //using (FileStream file = new FileStream(errorLogFileName, FileMode.Append))
-            //{
-            //    StreamWriter writer = new StreamWriter(file);
-            //    writer.Write(DateTime.Now.ToString() + "\r\n" + e.Message + "\r\n" + e.InnerException + "\r\n" + e.Source + "\r\n" + e.StackTrace + "\r\n" + "\r\n");
-            //}
+            string errorLogFileName = "emailNotifierError.log";
+            using (FileStream file = new FileStream(errorLogFileName, FileMode.Append))
+            {
+                StreamWriter writer = new StreamWriter(file);
+                writer.Write(DateTime.Now.ToString() + "\r\n" + e.Message + "\r\n" + e.InnerException + "\r\n" + e.Source + "\r\n" + e.StackTrace + "\r\n" + "\r\n");
+                writer.Close();
+            }
         }
 
 

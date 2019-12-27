@@ -24,13 +24,13 @@ namespace EmailNotifier
         public ConfigurationForm()
         {
             InitializeComponent();
-            populateAuthorisationCombo();
-            populateAccountNamesCombo();
         }
 
         public ConfigurationForm(Dictionary<string, IEmailAccountConfiguration> accountConfigsDict) : this()
         {
             this.accountConfigsDict = accountConfigsDict;
+            populateAuthorisationCombo();
+            populateAccountNamesCombo();
         }
 
 
@@ -72,7 +72,7 @@ namespace EmailNotifier
             }
             catch(ArgumentException exc)
             {
-                MyMessageBox.display(exc.Message, MyMessageBoxType.Error);
+                MyMessageBox.display(exc.Message + "\r\n" + exc.InnerException, MyMessageBoxType.Error);
             }
         }
 
@@ -118,7 +118,6 @@ namespace EmailNotifier
 
         private bool addOrUpdateAccountConfiguration()
         {
-            //IEmailAccountConfiguration accountConfig;
             string accountName = getAccountUrl();
             if (accountConfigsDict.ContainsKey(accountName))
             {
@@ -144,7 +143,7 @@ namespace EmailNotifier
 
             receiveServer.serverType = ServerType.POP3;
             receiveServer.url = serverUrlTextBox.Text;
-            receiveServer.port = getPort();
+            receiveServer.port = verifyInt(portTextBox.Text);
             receiveServer.useAuthorisation = getAuthorisation();
 
             emailConfig.receiveServer = receiveServer;
@@ -167,18 +166,6 @@ namespace EmailNotifier
             authorisationComboBox.DataSource = authorisationChoices;
         }
 
-        public int getPort()
-        {
-            int portNr;
-            bool parsed = int.TryParse(portTextBox.Text, out portNr);
-
-            if (!parsed)
-            {
-                throw new ArgumentException("Nazwa portu musi być liczbą naturalną");
-            }
-            return portNr;
-
-        }
 
 
         public bool getAuthorisation()
@@ -201,6 +188,20 @@ namespace EmailNotifier
             passwordTextBox.Text = "";
             portTextBox.Text = "";
             accountNameComboBox.Focus();
+        }
+
+
+        private int verifyInt(string text)
+        {
+            int portNr;
+            bool parsed = int.TryParse(text, out portNr);
+
+            if (!parsed)
+            {
+                throw new ArgumentException("Nazwa portu musi być liczbą naturalną");
+            }
+            return portNr;
+
         }
 
 

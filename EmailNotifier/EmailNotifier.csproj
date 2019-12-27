@@ -70,6 +70,7 @@
     <Compile Include="EmailServiceException.cs" />
     <Compile Include="IEmailMessage.cs" />
     <Compile Include="EmailServer.cs" />
+    <Compile Include="InternetCheck.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>

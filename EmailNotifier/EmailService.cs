@@ -115,14 +115,18 @@ namespace EmailNotifier
         /// <returns></returns>
         private bool pop3Connect(Pop3Client emailClient)
         {
-            bool connectionOK = false;
+            bool connected = false;
             try
             {
-                string srvUrl = emailAccountConfiguration.receiveServer.url;
+                string srvUrl = emailAccountConfiguration.receiveServer.TryGetUrl();
                 emailClient.Connect(srvUrl, emailAccountConfiguration.receiveServer.port, emailAccountConfiguration.receiveServer.useAuthorisation);
                 emailClient.AuthenticationMechanisms.Remove("XOAUTH2");
                 emailClient.Authenticate(emailAccountConfiguration.username, emailAccountConfiguration.password);
-                connectionOK = true;
+                connected = true;
+            }
+            catch(MailKit.Security.SslHandshakeException exc)
+            {
+                MyMessageBox.display(exc.Message + "\r\n" + emailAccountConfiguration.receiveServer.url, MyMessageBoxType.Error);
             }
             catch (System.Net.Sockets.SocketException e)
             {
@@ -133,7 +137,7 @@ namespace EmailNotifier
                 MyMessageBox.display(ex.Message + "\r\n" + emailAccountConfiguration.receiveServer.url, MyMessageBoxType.Error);
             }
 
-            return connectionOK;
+            return connected;
         }
 
 
