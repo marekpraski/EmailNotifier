@@ -7,6 +7,8 @@ using System.Windows.Forms;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading.Tasks;
 using System.Net.NetworkInformation;
+using System.Drawing;
+using System.Windows.Forms.VisualStyles;
 
 namespace EmailNotifier
 {
@@ -603,6 +605,8 @@ namespace EmailNotifier
             ColumnHeader columnHeader3 = new ColumnHeader();
 
             listView.CheckBoxes = true;
+            listView.HeaderStyle = ColumnHeaderStyle.Clickable;
+            listView.OwnerDraw = true;
             listView.Columns.AddRange(new ColumnHeader[] {
             columnHeader1,
             columnHeader2,
@@ -615,8 +619,14 @@ namespace EmailNotifier
             listView.UseCompatibleStateImageBehavior = false;
             listView.View = View.Details;
 
+            //zdarzenia potrzebne do renderowania oraz kontroli zachowania checkboxu w nagłówku listview 
+            listView.ColumnClick += new System.Windows.Forms.ColumnClickEventHandler(listView_ColumnClick);
+            listView.DrawColumnHeader += new System.Windows.Forms.DrawListViewColumnHeaderEventHandler(listView_DrawColumnHeader);
+            listView.DrawItem += new System.Windows.Forms.DrawListViewItemEventHandler(listView_DrawItem);
+            listView.DrawSubItem += new System.Windows.Forms.DrawListViewSubItemEventHandler(listView_DrawSubItem);
+
             columnHeader1.Width = 150;
-            columnHeader1.Text = "Date";
+            columnHeader1.Text = "         Date";
             columnHeader2.Width = 300;
             columnHeader2.Text = "From";
             columnHeader3.Width = 550;
@@ -624,6 +634,56 @@ namespace EmailNotifier
 
             return listView;
         }
+
+
+        #region Region - renderowanie checkboxa w nagłowku listview w celu zaznaczania/odznaczania wszystkich emaili równocześnie
+
+        private void listView_DrawColumnHeader(object sender, DrawListViewColumnHeaderEventArgs e)
+        {
+            if (e.ColumnIndex == 0)
+            {
+                //stan checkboxa zapisuję w tagu nagłówka
+                //zaraz po wyrenderowaniu tag jest null co metoda Convert.ToBoolean zwraca jako false
+                bool isChecked = Convert.ToBoolean(e.Header.Tag);
+                CheckBoxState state = isChecked ? CheckBoxState.CheckedNormal : CheckBoxState.UncheckedNormal;
+                TextFormatFlags flags = TextFormatFlags.VerticalCenter;
+                e.DrawBackground();
+                CheckBoxRenderer.DrawCheckBox(e.Graphics, new Point(e.Bounds.Left + 4, e.Bounds.Top + 4), state);//ClientRectangle.Location
+                e.DrawText(flags);
+            }
+            else
+            {
+                e.DrawDefault = true;
+            }
+        }
+
+        private void listView_DrawItem(object sender, DrawListViewItemEventArgs e)
+        {
+            e.DrawDefault = true;
+        }
+
+        private void listView_DrawSubItem(object sender, DrawListViewSubItemEventArgs e)
+        {
+            e.DrawDefault = true;
+        }
+
+
+        private void listView_ColumnClick(object sender, ColumnClickEventArgs e)
+        {
+            if (e.Column == 0)
+            {
+                ListView listView = sender as ListView;
+                bool isChecked = Convert.ToBoolean(listView.Columns[e.Column].Tag);
+
+                listView.Columns[e.Column].Tag = !isChecked;
+                foreach (ListViewItem item in listView.Items)
+                    item.Checked = !isChecked;
+
+                listView.Invalidate();
+            }
+        }
+
+        #endregion
 
 
         private TabPage generateBlankTabPage()
@@ -638,6 +698,8 @@ namespace EmailNotifier
             tabPage.SuspendLayout();
             return tabPage;
         }
+
+
 
 
         /// <summary>
