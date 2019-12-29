@@ -40,13 +40,19 @@
             this.label6 = new System.Windows.Forms.Label();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.saveButton = new System.Windows.Forms.ToolStripButton();
+            this.deleteEmailsCheckBox = new System.Windows.Forms.CheckBox();
+            this.helpLabel = new System.Windows.Forms.Label();
+            this.label7 = new System.Windows.Forms.Label();
+            this.numberOfEmailsAtSetupTextBox = new System.Windows.Forms.TextBox();
+            this.label8 = new System.Windows.Forms.Label();
+            this.helpLabel1 = new System.Windows.Forms.Label();
             this.toolStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(8, 33);
+            this.label1.Location = new System.Drawing.Point(8, 58);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(108, 13);
             this.label1.TabIndex = 0;
@@ -54,7 +60,7 @@
             // 
             // checkEmailTimerTextbox
             // 
-            this.checkEmailTimerTextbox.Location = new System.Drawing.Point(171, 30);
+            this.checkEmailTimerTextbox.Location = new System.Drawing.Point(122, 55);
             this.checkEmailTimerTextbox.Name = "checkEmailTimerTextbox";
             this.checkEmailTimerTextbox.Size = new System.Drawing.Size(33, 20);
             this.checkEmailTimerTextbox.TabIndex = 1;
@@ -65,7 +71,7 @@
             this.label2.Cursor = System.Windows.Forms.Cursors.Hand;
             this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Underline, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
             this.label2.ForeColor = System.Drawing.SystemColors.HotTrack;
-            this.label2.Location = new System.Drawing.Point(210, 33);
+            this.label2.Location = new System.Drawing.Point(161, 58);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(43, 13);
             this.label2.TabIndex = 2;
@@ -75,7 +81,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(11, 92);
+            this.label3.Location = new System.Drawing.Point(11, 117);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(31, 13);
             this.label3.TabIndex = 3;
@@ -83,15 +89,15 @@
             // 
             // numberOfEmailsKeptTextbox
             // 
-            this.numberOfEmailsKeptTextbox.Location = new System.Drawing.Point(48, 89);
+            this.numberOfEmailsKeptTextbox.Location = new System.Drawing.Point(45, 114);
             this.numberOfEmailsKeptTextbox.Name = "numberOfEmailsKeptTextbox";
-            this.numberOfEmailsKeptTextbox.Size = new System.Drawing.Size(68, 20);
+            this.numberOfEmailsKeptTextbox.Size = new System.Drawing.Size(47, 20);
             this.numberOfEmailsKeptTextbox.TabIndex = 7;
             // 
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(122, 92);
+            this.label4.Location = new System.Drawing.Point(98, 116);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(60, 13);
             this.label4.TabIndex = 5;
@@ -100,7 +106,7 @@
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(8, 62);
+            this.label5.Location = new System.Drawing.Point(8, 87);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(157, 13);
             this.label5.TabIndex = 6;
@@ -108,7 +114,7 @@
             // 
             // notificationTimerTextbox
             // 
-            this.notificationTimerTextbox.Location = new System.Drawing.Point(171, 59);
+            this.notificationTimerTextbox.Location = new System.Drawing.Point(171, 84);
             this.notificationTimerTextbox.Name = "notificationTimerTextbox";
             this.notificationTimerTextbox.Size = new System.Drawing.Size(33, 20);
             this.notificationTimerTextbox.TabIndex = 4;
@@ -119,7 +125,7 @@
             this.label6.Cursor = System.Windows.Forms.Cursors.Hand;
             this.label6.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Underline, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
             this.label6.ForeColor = System.Drawing.SystemColors.HotTrack;
-            this.label6.Location = new System.Drawing.Point(211, 62);
+            this.label6.Location = new System.Drawing.Point(211, 87);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(47, 13);
             this.label6.TabIndex = 8;
@@ -132,7 +138,7 @@
             this.saveButton});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(265, 25);
+            this.toolStrip1.Size = new System.Drawing.Size(268, 25);
             this.toolStrip1.TabIndex = 9;
             this.toolStrip1.Text = "toolStrip1";
             // 
@@ -146,11 +152,76 @@
             this.saveButton.Text = "save settings";
             this.saveButton.Click += new System.EventHandler(this.SaveButton_Click);
             // 
+            // deleteEmailsCheckBox
+            // 
+            this.deleteEmailsCheckBox.AutoSize = true;
+            this.deleteEmailsCheckBox.Location = new System.Drawing.Point(11, 143);
+            this.deleteEmailsCheckBox.Name = "deleteEmailsCheckBox";
+            this.deleteEmailsCheckBox.Size = new System.Drawing.Size(210, 17);
+            this.deleteEmailsCheckBox.TabIndex = 10;
+            this.deleteEmailsCheckBox.Text = "delete checked new emails from server";
+            this.deleteEmailsCheckBox.UseVisualStyleBackColor = true;
+            // 
+            // helpLabel
+            // 
+            this.helpLabel.AutoSize = true;
+            this.helpLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Underline))), System.Drawing.GraphicsUnit.Point, ((byte)(238)));
+            this.helpLabel.ForeColor = System.Drawing.SystemColors.HotTrack;
+            this.helpLabel.Location = new System.Drawing.Point(217, 142);
+            this.helpLabel.Name = "helpLabel";
+            this.helpLabel.Size = new System.Drawing.Size(15, 15);
+            this.helpLabel.TabIndex = 11;
+            this.helpLabel.Text = "?";
+            this.helpLabel.MouseEnter += new System.EventHandler(this.HelpLabel_MouseEnter);
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(96, 35);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(132, 13);
+            this.label7.TabIndex = 13;
+            this.label7.Text = "emails from server at setup";
+            // 
+            // numberOfEmailsAtSetupTextBox
+            // 
+            this.numberOfEmailsAtSetupTextBox.Location = new System.Drawing.Point(44, 32);
+            this.numberOfEmailsAtSetupTextBox.Name = "numberOfEmailsAtSetupTextBox";
+            this.numberOfEmailsAtSetupTextBox.Size = new System.Drawing.Size(47, 20);
+            this.numberOfEmailsAtSetupTextBox.TabIndex = 14;
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(11, 35);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(28, 13);
+            this.label8.TabIndex = 12;
+            this.label8.Text = "read";
+            // 
+            // helpLabel1
+            // 
+            this.helpLabel1.AutoSize = true;
+            this.helpLabel1.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Underline))), System.Drawing.GraphicsUnit.Point, ((byte)(238)));
+            this.helpLabel1.ForeColor = System.Drawing.SystemColors.HotTrack;
+            this.helpLabel1.Location = new System.Drawing.Point(228, 32);
+            this.helpLabel1.Name = "helpLabel1";
+            this.helpLabel1.Size = new System.Drawing.Size(15, 15);
+            this.helpLabel1.TabIndex = 15;
+            this.helpLabel1.Text = "?";
+            this.helpLabel1.MouseEnter += new System.EventHandler(this.HelpLabel1_MouseEnter);
+            // 
             // SettingsForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(265, 126);
+            this.ClientSize = new System.Drawing.Size(268, 170);
+            this.Controls.Add(this.helpLabel1);
+            this.Controls.Add(this.label7);
+            this.Controls.Add(this.numberOfEmailsAtSetupTextBox);
+            this.Controls.Add(this.label8);
+            this.Controls.Add(this.helpLabel);
+            this.Controls.Add(this.deleteEmailsCheckBox);
             this.Controls.Add(this.toolStrip1);
             this.Controls.Add(this.label6);
             this.Controls.Add(this.notificationTimerTextbox);
@@ -183,5 +254,11 @@
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.ToolStrip toolStrip1;
         private System.Windows.Forms.ToolStripButton saveButton;
+        private System.Windows.Forms.CheckBox deleteEmailsCheckBox;
+        private System.Windows.Forms.Label helpLabel;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.TextBox numberOfEmailsAtSetupTextBox;
+        private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.Label helpLabel1;
     }
 }

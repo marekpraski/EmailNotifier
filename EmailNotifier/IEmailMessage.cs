@@ -13,5 +13,7 @@ namespace EmailNotifier
         string Subject { get; set; }
         string messageId { get; set; }
         DateTime messageDateTime { get; set; }
+        EmailAddress SenderAddress { get; set; }
+        string Content { get; set; }
     }
 }

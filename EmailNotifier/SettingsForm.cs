@@ -8,27 +8,34 @@ namespace EmailNotifier
         public delegate void saveSettingsEventHandler(object sender, SettingsArgs args);
         public event saveSettingsEventHandler saveSettingsEvent;
 
-        public int checkEmailTimespan { get; set; } = 15;            //minut 
-        public int notificationFrequency { get; set; } = 30;      //sekund
-        public int numberOfEmailsKept { get; set; } = 50;            //przeczytanych maili
+        public int checkEmailTimespan { get; set; }           //minut 
+        public int notificationFrequency { get; set; }      //sekund
+        public int numberOfEmailsKept { get; set; }           //przeczytanych maili
+        public bool deleteCheckedEmails { get; set; }
+        public int emailNumberAtSetup { get; set; }        //emaili wczytywanych na starcie po utworzeniu konta
         public SettingsForm()
         {
             InitializeComponent();
+            initialSetup();
         }
 
-        public SettingsForm(int checkEmailTimespan, int showNotificationTimespan, int numberOfEmailsKept) : this()
+        public void initialSetup()
         {
-            this.checkEmailTimespan = checkEmailTimespan;
-            this.notificationFrequency = showNotificationTimespan;
-            this.numberOfEmailsKept = numberOfEmailsKept;
+            this.checkEmailTimespan = ProgramSettings.checkEmailTimespan;
+            this.notificationFrequency = ProgramSettings.showNotificationTimespan;
+            this.numberOfEmailsKept = ProgramSettings.numberOfEmailsKept;
+            this.deleteCheckedEmails = ProgramSettings.deleteCheckedEmails;
+            this.emailNumberAtSetup = ProgramSettings.numberOfEmailsAtSetup;
 
             checkEmailTimerTextbox.Text = checkEmailTimespan.ToString();
-            notificationTimerTextbox.Text = showNotificationTimespan.ToString();
+            notificationTimerTextbox.Text = notificationFrequency.ToString();
             numberOfEmailsKeptTextbox.Text = numberOfEmailsKept.ToString();
+            numberOfEmailsAtSetupTextBox.Text = emailNumberAtSetup.ToString();
+            deleteEmailsCheckBox.Checked = deleteCheckedEmails;
         }
 
 
-                private void SaveButton_Click(object sender, EventArgs e)
+        private void SaveButton_Click(object sender, EventArgs e)
         {
             if (validateUserInput())
             {
@@ -38,6 +45,8 @@ namespace EmailNotifier
                     args.emailCheckTimespan = checkEmailTimespan;
                     args.notificationBubbleTimespan = notificationFrequency;
                     args.emailNumberKept = numberOfEmailsKept;
+                    args.deleteCheckedEmails = deleteCheckedEmails;
+                    args.emailNumberAtSetup = emailNumberAtSetup;
                     saveSettingsEvent(this, args);
                     this.Close();
                 }
@@ -51,6 +60,8 @@ namespace EmailNotifier
                 checkEmailTimespan = validate(checkEmailTimerTextbox.Text);
                 notificationFrequency = validate(notificationTimerTextbox.Text);
                 numberOfEmailsKept = validate(numberOfEmailsKeptTextbox.Text);
+                emailNumberAtSetup = validate(numberOfEmailsAtSetupTextBox.Text);
+                deleteCheckedEmails = deleteEmailsCheckBox.Checked;
             }
             catch (ArgumentException ex)
             {
@@ -96,6 +107,16 @@ namespace EmailNotifier
         private void Label6_MouseEnter(object sender, EventArgs e)
         {
             displayTooltip(sender, "20 seconds or more. If less is entered, 20 will be set");
+        }
+
+        private void HelpLabel_MouseEnter(object sender, EventArgs e)
+        {
+            displayTooltip(sender, "if this checkbox is left unchecked, checked new emails are only marked as read");
+        }
+
+        private void HelpLabel1_MouseEnter(object sender, EventArgs e)
+        {
+            displayTooltip(sender, "leave empty to read all emails from server");
         }
     }
 }

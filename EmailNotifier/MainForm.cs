@@ -270,7 +270,7 @@ namespace EmailNotifier
         private void SettingsButton_Click(object sender, EventArgs e)
         {
             //ProgramSettings ps = new ProgramSettings();
-            SettingsForm settingsForm = new SettingsForm(ProgramSettings.checkEmailTimespan, ProgramSettings.showNotificationTimespan, ProgramSettings.numberOfEmailsKept);
+            SettingsForm settingsForm = new SettingsForm();
             settingsForm.saveSettingsEvent += setProgramSettings;
             settingsForm.ShowDialog();
             settingsForm.saveSettingsEvent -= setProgramSettings;
@@ -347,6 +347,8 @@ namespace EmailNotifier
             ProgramSettings.numberOfEmailsKept = args.emailNumberKept;
             ProgramSettings.checkEmailTimespan = args.emailCheckTimespan;
             ProgramSettings.showNotificationTimespan = args.notificationBubbleTimespan;
+            ProgramSettings.deleteCheckedEmails = args.deleteCheckedEmails;
+            ProgramSettings.numberOfEmailsAtSetup = args.emailNumberAtSetup;
             setTimers();
         }
 
@@ -488,7 +490,7 @@ namespace EmailNotifier
 
             int maxTabPageHeigth = 500;         //globalna max. dopuszczalna wysokość
             int maxActualTabPageHeigth = 0;     //wysokość najwyższej utworzonej stronicy
-            int listviewWidth = 1000 + 10;          //suma szerokości kolumn + 10 jako margines
+            int listviewWidth = 1000 + 30;          //suma szerokości kolumn + margines
 
             int messagePacketHeight;
             int emailNumber;
@@ -528,14 +530,16 @@ namespace EmailNotifier
 
                         ListViewItem listRow = new ListViewItem(emailDataRow);
                         listRow.Name = emailMessage.messageId;
+                        listRow.Tag = emailMessage.Content;
                         listView.Items.Add(listRow);
 
-                        messagePacketHeight += emailNumber * 6;        //liczę mnożąc liczbę wierszy przez wysokość jednego wiersza
                         emailNumber++;
                     }
+                    messagePacketHeight += emailNumber * (listView.Font.Height + 5);        //liczę mnożąc liczbę wierszy przez wysokość jednego wiersza, dodając odstępy między wierszami
 
-                    listView.Height = messagePacketHeight + 20;         //dodaję margines
-
+                    listView.Height = messagePacketHeight + 30;         //dodaję margines
+                    int maxHeigth =  listView.Height > maxTabPageHeigth ? maxTabPageHeigth : listView.Height;
+                    listView.Height = maxHeigth;
                     tabPage.Text = mailboxName;
                     tabPage.Width = listView.Width + 3;
                     tabPage.Height = listView.Height + 20;              //dodaję margines
@@ -553,8 +557,8 @@ namespace EmailNotifier
             emailDisplayTabControl.Width = listviewWidth + 10;
             emailDisplayTabControl.ResumeLayout();
 
-            this.Height = emailDisplayTabControl.Height + 130;
-            this.Width = emailDisplayTabControl.Width + 30;
+            this.Height = emailDisplayTabControl.Height + 70;
+            this.Width = emailDisplayTabControl.Width + 20;
             this.ResumeLayout();
             this.Refresh();
         }
@@ -612,9 +616,13 @@ namespace EmailNotifier
             columnHeader2,
             columnHeader3});
             listView.HideSelection = false;
+            listView.ShowItemToolTips = true;
+            listView.FullRowSelect = true;
+            listView.MultiSelect = false;
+            listView.Scrollable = true;
             listView.Location = new System.Drawing.Point(0, 0);
             listView.Size = new System.Drawing.Size(listviewWidth, 500);
-            listView.Anchor = (AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left);
+            listView.Anchor = (AnchorStyles.Top | AnchorStyles.Left);
             listView.TabIndex = 3;
             listView.UseCompatibleStateImageBehavior = false;
             listView.View = View.Details;
@@ -625,6 +633,9 @@ namespace EmailNotifier
             listView.DrawItem += new System.Windows.Forms.DrawListViewItemEventHandler(listView_DrawItem);
             listView.DrawSubItem += new System.Windows.Forms.DrawListViewSubItemEventHandler(listView_DrawSubItem);
 
+            //do wyświetlania treści wiadomości po zaznaczeniu wiadomości na liście
+            listView.SelectedIndexChanged += new System.EventHandler(ListView_SelectedIndexChanged);
+
             columnHeader1.Width = 150;
             columnHeader1.Text = "         Date";
             columnHeader2.Width = 300;
@@ -633,6 +644,18 @@ namespace EmailNotifier
             columnHeader3.Text = "Subject";
 
             return listView;
+        }
+
+
+        private void ListView_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            ListView listView = sender as ListView;
+            if (listView.SelectedItems.Count > 0)
+            {
+                ListViewItem selected = listView.SelectedItems[0];
+                string msgText = selected.Tag != null ? selected.Tag.ToString() : "wiadomość nie zawiera treści";
+                MyMessageBox.display(msgText);
+            }
         }
 
 
@@ -772,7 +795,7 @@ namespace EmailNotifier
 
                         if (mailbox.allEmailsList.Count == 0)
                         {
-                            if (getMessages(mailbox))
+                            if (getMessages(mailbox, ProgramSettings.numberOfEmailsAtSetup))
                                 messagesReceived = true;
                         }
                         else

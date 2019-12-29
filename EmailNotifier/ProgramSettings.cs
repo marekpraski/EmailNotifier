@@ -20,6 +20,8 @@ namespace EmailNotifier
         public static int checkEmailTimespan { get; set; } = 15;            //minut 
         public static int showNotificationTimespan { get; set; } = 30;      //sekund
         public static int numberOfEmailsKept { get; set; } = 50;               //przeczytanych maili
+        public static int numberOfEmailsAtSetup { get; set; } = 10;          //emaili wczytywanych na starcie po utworzeniu konta
+        public static bool deleteCheckedEmails { get; set; } = false;
 
     }
 }

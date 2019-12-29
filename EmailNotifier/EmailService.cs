@@ -83,14 +83,15 @@ namespace EmailNotifier
 
                         for (int i = numberOfMessagesOnServer - 1; i > 0 && i > (numberOfMessagesOnServer - 1 - numberOfMessagesToReceive); i--)
                         {
+                            EmailMessage emailMessage = getOneMessage(emailClient, i);
                             var message = emailClient.GetMessage(i);
-                            var emailMessage = new EmailMessage
-                            {
-                                Subject = message.Subject,
-                                messageId = message.MessageId,
-                                FromAddress = message.From.ToString(),
-                                messageDateTime = message.Date.DateTime
-                            };
+                            //var emailMessage = new EmailMessage
+                            //{
+                            //    Subject = message.Subject,
+                            //    messageId = message.MessageId,
+                            //    FromAddress = message.From.ToString(),
+                            //    messageDateTime = message.Date.DateTime
+                            //};
 
                             emailsReceived.AddLast(emailMessage);
                         }
@@ -157,12 +158,7 @@ namespace EmailNotifier
 
                         do
                         {
-                            var message = emailClient.GetMessage(messageIndex);
-                            emailMessage = new EmailMessage();
-                            emailMessage.Subject = message.Subject;
-                            emailMessage.messageId = message.MessageId;
-                            emailMessage.FromAddress = message.From.ToString();
-                            emailMessage.messageDateTime = message.Date.UtcDateTime;
+                            emailMessage = getOneMessage(emailClient, messageIndex);
 
                             //sprawdzenie po ID wiadomości działa tylko wtedy, gdy w międzyczasie nie usunąłem z serwera wiadomości nowszych, niż ostatnio wczytana
                             //dlatego sprawdzam też po dacie, wczytuję tylko wiadomości młodsze od ostatniej, którą mam w bazie
@@ -192,7 +188,22 @@ namespace EmailNotifier
             
         }
 
+        private EmailMessage getOneMessage(Pop3Client emailClient, int messageIndex)
+        {
+            var message = emailClient.GetMessage(messageIndex);
+            EmailMessage emailMessage = new EmailMessage()
+            {
+                Subject = message.Subject,
+                messageId = message.MessageId,
+                FromAddress = message.From.ToString(),
+                messageDateTime = message.Date.UtcDateTime,
+                Content = message.TextBody
+            };
+            if (message.Sender != null)
+                emailMessage.SenderAddress = new EmailAddress(message.Sender.Name, message.Sender.Address);
 
+            return emailMessage;
+        }
 
         private List<EmailMessage> GetMessagesImap(int numberOfMessagesToReceive)
         {
