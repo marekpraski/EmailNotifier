@@ -133,6 +133,10 @@ namespace EmailNotifier
                 notifyIcon.ShowBalloonTip(1000);
                 checkEmailsTimer.Start();
             }
+            else
+            {
+                this.ShowInTaskbar = true;
+            }
         }
 
 
