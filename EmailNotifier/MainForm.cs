@@ -19,6 +19,7 @@ namespace EmailNotifier
 
         private TabControl emailDisplayTabControl;
         private Label infoLabel;
+        private string infoButtonMessage = "";
 
         private Dictionary<string, EmailAccount> mailBoxesDict = new Dictionary<string, EmailAccount>();
         private Dictionary<string, List<IEmailMessage>> checkedEmailsDict = new Dictionary<string, List<IEmailMessage>>();
@@ -295,6 +296,12 @@ namespace EmailNotifier
         }
 
 
+        private void InfoButton_Click(object sender, EventArgs e)
+        {
+            MyMessageBox.display(infoButtonMessage);
+        }
+
+
         private void ListView_SelectedIndexChanged(object sender, EventArgs e)
         {
             displayEmailBody(sender);
@@ -553,20 +560,45 @@ namespace EmailNotifier
 
         private void displayNewEmails()
         {
+            if(emailsDisplayed != EmailListType.none)
+            {
+                closeEmailsDisplayWindow();
+            }
+
+            infoButtonMessage = "Click on a message to read the content\r\n" +
+                                "Press 'delete' to mark checked messages for deletion from server\r\n" +
+                                "Press 'delete' again to unmark checked messages\r\n" +
+                                "Messages will be deleted from server during the next check for new messages\r\n" +
+                                "The deleted messages may still be recovered for a limited time (depends on the server settings)\r\n" +
+                                "directly from the server, from the Trash\r\n" +
+                                "Just check messages you want to mark as read but still keep them on server";
+
             emailsDisplayed = EmailListType.newEmails;
             displayEmails();
             hideEmailsButton.Enabled = true;
             showNewEmailsButton.Enabled = false;
-            showAllEmailsButton.Enabled = false;
+            showAllEmailsButton.Enabled = true;
         }
 
 
         private void displayAllEmails()
         {
+            if (emailsDisplayed != EmailListType.none)
+            {
+                closeEmailsDisplayWindow();
+            }
+
+            infoButtonMessage = "Click on a message to read the content\r\n" +
+                                "Press 'delete' to mark checked messages for deletion from server\r\n" +
+                                "Press 'delete' again to unmark checked messages\r\n" +
+                                "Messages will be deleted from server during the next check for new messages\r\n" +
+                                "The deleted messages may still be recovered for a limited time (depends on the server settings)\r\n" +
+                                "directly from the server, from the Trash\r\n";
+
             emailsDisplayed = EmailListType.allEmails;
             displayEmails();
             hideEmailsButton.Enabled = true;
-            showNewEmailsButton.Enabled = false;
+            showNewEmailsButton.Enabled = true;
             showAllEmailsButton.Enabled = false;
         }
 
@@ -692,17 +724,18 @@ namespace EmailNotifier
             infoLabel.AutoSize = true;
             infoLabel.Location = new System.Drawing.Point(200, 5);
             infoLabel.Size = new System.Drawing.Size(35, 13);
-            infoLabel.BackColor = System.Drawing.SystemColors.Control;
+            infoLabel.BackColor = System.Drawing.Color.Transparent;
             infoLabel.Font = new System.Drawing.Font("Arial", 15);
             infoLabel.ForeColor = System.Drawing.Color.Black;
 
             switch (this.emailsDisplayed)
             {
                 case EmailListType.allEmails:
-                    infoLabel.Text = "all emails";
+                    infoLabel.Text = "all emails";            
                     break;
                 case EmailListType.newEmails:
-                    infoLabel.Text = "new emails - check emails to mark them as read";
+                    infoLabel.Text = "new emails";
+                    infoLabel.ForeColor = Color.Red;
                     break;
             }
             this.Controls.Add(infoLabel);
@@ -774,7 +807,7 @@ namespace EmailNotifier
                 ListViewItem selected = listView.SelectedItems[0];
                 IEmailMessage selectedMessage = selected.Tag as IEmailMessage;
 
-                string msgText = selectedMessage.Content != null ? selectedMessage.Content : "wiadomość nie zawiera treści";
+                string msgText = selectedMessage.Content != null ? selectedMessage.Content : "the email is empty";
                 MyMessageBox.display(msgText);
             }
         }
@@ -886,6 +919,8 @@ namespace EmailNotifier
         // zamyka okno wyświetlania emaili, aktualizując nowe emaile w razie potrzeby i zapisując zmiany na dysk
         private void closeEmailsDisplayWindow()
         {
+            infoButtonMessage = "";
+
             //wychwytuję zaznaczone emaile w każdej zakładce, ale tylko wtedy gdy wyświetlona była lista nowych maili
             if (emailsDisplayed == EmailListType.newEmails)
             {

@@ -43,13 +43,25 @@ namespace EmailNotifier
 
         public void markEmailDelete(IEmailMessage email)
         {
+            try
+            {
             newEmailsList.Find(email).Value.markedForDeletion = true;
+            }
+            catch (Exception)
+            {
+            }
             allEmailsList.Find(email).Value.markedForDeletion = true;
         }
 
         public void markEmailDoNotDelete(IEmailMessage email)
         {
+            try
+            {
             newEmailsList.Find(email).Value.markedForDeletion = false;
+            }
+            catch (Exception)
+            {                
+            }
             allEmailsList.Find(email).Value.markedForDeletion = false;
 
         }
