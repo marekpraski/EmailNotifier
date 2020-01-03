@@ -153,7 +153,8 @@ namespace EmailNotifier
 
         private void Button1_Click(object sender, EventArgs e)
         {
-            
+            MyMessageBox.display("http://google.com");
+            //System.Diagnostics.Process.Start("http://google.com");
         }
 
         private void ListView1_ItemCheck(object sender, ItemCheckEventArgs e)

@@ -306,5 +306,10 @@ namespace EmailNotifier
                 }
             }
         }
+
+        private void TextBox1_LinkClicked(object sender, LinkClickedEventArgs e)
+        {            
+            System.Diagnostics.Process.Start(e.LinkText);
+        }
     }
 }
