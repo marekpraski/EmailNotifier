@@ -310,7 +310,37 @@ namespace EmailNotifier
 
         private void ListView_KeyDown(object sender, KeyEventArgs e)
         {
-            markEmailsForDeletion(sender, e);
+            if (e.KeyCode == Keys.Delete)
+            {
+                markEmailsForDeletion(sender, e);
+            }
+        }
+
+
+        //zdarzenie działa tylko gdy są zaznaczone jakieś emaile do skasowania
+        //bo obsługuje ono przypadek, gdy ktoś odfajkuje nową wiadomość, którą poprzednio 
+        //zaznaczył do skasowania, to jest ona odznaczana do skasowania, 
+        //tj. żeby nie można było z serwera usunąć wiadomości, która nie jest zaznaczona jako przeczytana
+        //zdarzenie aktywowane jest naciśnięciem klawisza 'delete'
+        private void ListView_ItemCheck(object sender, ItemCheckEventArgs e)
+        {
+            ListView listview = sender as ListView;
+            ListViewItem item = listview.Items[e.Index];
+            if (item.Checked && item.ImageIndex >= 0)        //tzn zaznaczona do skasowania, w tej akcji kliknięcia ją odznaczam
+            {
+                string accountName = listview.Name;
+                EmailAccount account;
+                mailBoxesDict.TryGetValue(accountName, out account);
+
+                List<IEmailMessage> emailsToDelete;
+                emailsToBeDeletedDict.TryGetValue(accountName, out emailsToDelete);
+
+                IEmailMessage email = item.Tag as IEmailMessage;
+
+                markEmailAsNotToBeDeleted(emailsToDelete, email, account);
+                item.ImageIndex = -1;
+                listview.Refresh();
+            }        
         }
 
 
@@ -814,17 +844,21 @@ namespace EmailNotifier
 
 
 
-        // zaznaczanie wiadomości do skasowania, uruchamiana osobno dla każdego mailboxa
+        // zaznaczanie wiadomości do skasowania, metoda jest uruchamiana tylko dla jednego mailboxa
         //bo senderem jest lista, która jest osobna dla każdego mailboxa
         private void markEmailsForDeletion(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Delete)
+            ListView listView = sender as ListView;
+
+            activateListviewItemCheckEvent(listView);
+
+            ListView.CheckedListViewItemCollection checkedItems = listView.CheckedItems;
+            if (checkedItems.Count > 0)
             {
-                ListView listView = sender as ListView;
                 string mailboxName = listView.Name;
 
                 List<IEmailMessage> emailsToDelete;
-                if (emailsToBeDeletedDict.ContainsKey(mailboxName))       
+                if (emailsToBeDeletedDict.ContainsKey(mailboxName))
                 {
                     emailsToBeDeletedDict.TryGetValue(mailboxName, out emailsToDelete);
                 }
@@ -834,7 +868,6 @@ namespace EmailNotifier
                     emailsToBeDeletedDict.Add(mailboxName, emailsToDelete);
                 }
 
-                ListView.CheckedListViewItemCollection checkedItems = listView.CheckedItems;
                 foreach (ListViewItem item in checkedItems)
                 {
                     item.ImageIndex = item.ImageIndex < 0 ? 0 : -1;
@@ -842,6 +875,16 @@ namespace EmailNotifier
                 }
                 listView.Refresh();
             }
+        }
+
+
+        private void activateListviewItemCheckEvent(ListView listView)
+        {
+            //aktywuję to zdarzenie dopiero teraz, gdy zaznaczam jakieś emaile do skasowania
+            //bo obsługuje ono przypadek, gdy ktoś odfajkuje nową wiadomość, którą poprzednio 
+            //zaznaczył do skasowania, to jest ona odznaczana do skasowania, 
+            //tj. żeby nie można było z serwera usunąć wiadomości, która nie jest zaznaczona jako przeczytana
+            listView.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(ListView_ItemCheck);
         }
 
 
@@ -853,14 +896,20 @@ namespace EmailNotifier
 
             if (emailsToDelete.Contains(message))
             {
-                mailbox.markEmailDoNotDelete(message);
-                emailsToDelete.Remove(message);
+                markEmailAsNotToBeDeleted(emailsToDelete, message, mailbox);
             }
             else
             {
                 mailbox.markEmailDelete(message);
                 emailsToDelete.Add(message);
             }
+        }
+
+
+        private void markEmailAsNotToBeDeleted(List<IEmailMessage> emailsToDelete, IEmailMessage message, EmailAccount mailbox)
+        {
+            mailbox.markEmailDoNotDelete(message);
+            emailsToDelete.Remove(message);
         }
 
 
