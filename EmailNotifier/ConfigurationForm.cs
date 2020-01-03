@@ -13,6 +13,7 @@ namespace EmailNotifier
     public partial class ConfigurationForm : Form
     {
         public delegate void saveButtonClickedEventHandler(object sender, ConfigurationFormEventArgs args);
+
         public event saveButtonClickedEventHandler saveButtonClickedEvent;
 
         private readonly Dictionary<string, IEmailAccountConfiguration> accountConfigsDict = new Dictionary<string, IEmailAccountConfiguration>();

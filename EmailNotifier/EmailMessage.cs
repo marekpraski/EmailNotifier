@@ -20,5 +20,7 @@ namespace EmailNotifier
         public string Content { get; set; }
         public string messageId { get; set; }
         public DateTime messageDateTime { get; set; }
+        public bool markedForDeletion { get; set; }
+        public bool deletedFromServer { get ; set; }
     }
 }

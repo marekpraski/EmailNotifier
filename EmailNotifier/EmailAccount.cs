@@ -9,6 +9,7 @@ namespace EmailNotifier
     {
         public string name { get; set; }
         public LinkedList<IEmailMessage> allEmailsList { get; set; }
+
         public LinkedList<IEmailMessage> newEmailsList { get; set; }
         public IEmailAccountConfiguration configuration { get; set; }
         public bool hasNewEmails
@@ -23,54 +24,44 @@ namespace EmailNotifier
             newEmailsList = new LinkedList<IEmailMessage>();
         }
 
-        public void addEmail(IEmailMessage email)
+        public void addEmails(IEmailMessage email)
         {
                 allEmailsList.AddFirst(email);
                 newEmailsList.AddFirst(email);
                 hasNewEmails = true;
         }
 
-        public void addEmail(LinkedList<IEmailMessage> emails)
+        public void addEmails(LinkedList<IEmailMessage> emails)
         {
             while(emails.Count>0)
             {
-                addEmail(emails.Last.Value);
+                addEmails(emails.Last.Value);
                 emails.RemoveLast();
-            }
-            
+            }            
         }
 
 
-        public void markEmailRead(IEmailMessage email)
+        public void markEmailDelete(IEmailMessage email)
         {
-            if(hasNewEmails && newEmailsList.Contains(email))
-            {
-                newEmailsList.Remove(email);
-                if (newEmailsList.Count == 0)
-                {
-                    hasNewEmails = false;
-                }
-            }
+            newEmailsList.Find(email).Value.markedForDeletion = true;
+            allEmailsList.Find(email).Value.markedForDeletion = true;
         }
 
-
-
-        public bool removeNewEmail(string emailId)
+        public void markEmailDoNotDelete(IEmailMessage email)
         {
-            bool emailFound = false;
-            int i = 0;
-            do
+            newEmailsList.Find(email).Value.markedForDeletion = false;
+            allEmailsList.Find(email).Value.markedForDeletion = false;
+
+        }
+
+        public void markEmailsDeletedFromServer(List<IEmailMessage> emails)
+        {
+            foreach (IEmailMessage email in emails)
             {
-                IEmailMessage email = newEmailsList.ElementAt(i);
-                if(email.messageId == emailId)
-                {
-                    newEmailsList.Remove(email);
-                    emailFound = true;
-                }
-                i++;
+                LinkedListNode<IEmailMessage> node = allEmailsList.Find(email);
+                node.Value.deletedFromServer = true;
+                node.Value.Content = "";
             }
-            while (!emailFound);
-            return emailFound;
         }
 
 

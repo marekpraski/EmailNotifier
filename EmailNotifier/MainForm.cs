@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Net.NetworkInformation;
 using System.Drawing;
 using System.Windows.Forms.VisualStyles;
+using System.Diagnostics;
 
 namespace EmailNotifier
 {
@@ -18,11 +19,20 @@ namespace EmailNotifier
 
         private TabControl emailDisplayTabControl;
         private Label infoLabel;
-        private Dictionary<string, EmailAccount> mailBoxes = new Dictionary<string, EmailAccount>();
-        private Dictionary<string, List<string>> checkedEmailsDict = new Dictionary<string, List<string>>();
+
+        private Dictionary<string, EmailAccount> mailBoxesDict = new Dictionary<string, EmailAccount>();
+        private Dictionary<string, List<IEmailMessage>> checkedEmailsDict = new Dictionary<string, List<IEmailMessage>>();
+
+        //słownik przechowujący maile zaznaczone przez użytkownika do skasowania, resetowany jest każdorazowo po operacji wczytywania/kasowania maili
+        private Dictionary<string, List<IEmailMessage>> emailsToBeDeletedDict = new Dictionary<string, List<IEmailMessage>>();
 
         private EmailListType emailsDisplayed = EmailListType.none;
         private bool newEmailsReceived = false;
+        private bool emailsDeletedFromServer = false;   //jeżeli true, to podczas zamykania programu zapisuję dane do pliku mimo braku nowych wiadomości,
+                                                        //bo samo kasowanie wiadomości z serwera bez pobierania nowych wiadomości nie powoduje zapisywania danych do pliku
+
+        private IEmailService emailService = null;
+
 
 
         public MainForm()
@@ -51,6 +61,8 @@ namespace EmailNotifier
             setTimers();
         }
 
+
+
         private void setTimers()
         {
             //zamieniam minuty na milisekundy, nie mniej niż 5 minut
@@ -69,6 +81,7 @@ namespace EmailNotifier
             Directory.CreateDirectory(ProgramSettings.fileSavePath);
         }
 
+
         /// <summary>
         /// jeżeli istnieje plik z danymi, czyta konfigurację kont z pliku
         /// </summary>
@@ -82,12 +95,67 @@ namespace EmailNotifier
         }
 
 
+
+
+        /// <summary>
+        /// czyta dane kont pocztowych z pliku
+        /// </summary>
+        /// <param name="fileName"></param>
+        private void readDataFromFile(string fileName)
+        {
+            DataBundle dataBundle;
+
+            try
+            {
+                using (FileStream fileStream = new FileStream(fileName, FileMode.Open))
+                {
+                    byte[] buffer = new byte[fileStream.Length];
+                    using (BinaryReader binReader = new BinaryReader(fileStream))
+                    {
+                        buffer = binReader.ReadBytes(buffer.Length);
+                    }
+
+                    MemoryStream originalStream = new MemoryStream(buffer);
+                    MemoryStream decompressedStream = new MemoryStream();
+
+                    using (GZipStream gzStream = new GZipStream(originalStream, CompressionMode.Decompress))
+                    {
+                        gzStream.CopyTo(decompressedStream);
+                    }
+
+                    originalStream.Close();
+                    BinaryFormatter formatter = new BinaryFormatter();
+                    decompressedStream.Position = 0;
+                    dataBundle = (DataBundle)formatter.Deserialize(decompressedStream);
+                    decompressedStream.Close();
+                }
+
+                this.mailBoxesDict = dataBundle.mailBoxes;
+                this.emailsToBeDeletedDict = dataBundle.emailsToBeDeletedDict;
+                ProgramSettings.checkEmailTimespan = dataBundle.checkEmailTimespan;
+                ProgramSettings.numberOfEmailsKept = dataBundle.numberOfEmailsKept;
+                ProgramSettings.showNotificationTimespan = dataBundle.showNotificationTimespan;
+
+            }
+            catch (System.IO.InvalidDataException exc)
+            {
+                MyMessageBox.display("błąd odczytu z pliku danych\r\n" + exc.Message + "\r\n" + exc.StackTrace, MyMessageBoxType.Error);
+            }
+            catch (System.InvalidCastException ex)
+            {
+
+                MyMessageBox.display("błąd odczytu z pliku danych\r\n" + ex.Message + "\r\n" + ex.StackTrace, MyMessageBoxType.Error);
+            }
+        }
+
+
+
         /// <summary>
         /// uruchamia okno konfiguracji kont mailowych i przypisuje metodę do zdarzenia zapisu w tym oknie
         /// </summary>
         private void configureEmailAccounts()
         {
-            ConfigurationForm configForm = new ConfigurationForm(generateAccountConfigurationsDict(mailBoxes));    //przesyłam słownik konfiguracji kont, żeby można było anulować zmiany
+            ConfigurationForm configForm = new ConfigurationForm(generateAccountConfigurationsDict(mailBoxesDict));    //przesyłam słownik konfiguracji kont, żeby można było anulować zmiany
             configForm.saveButtonClickedEvent += configurationFormSaveButtonClicked;
             configForm.ShowDialog();
             configForm.saveButtonClickedEvent -= configurationFormSaveButtonClicked;    //likwiduję zdarzenie żeby zapobiec wyciekowi pamięci
@@ -111,7 +179,7 @@ namespace EmailNotifier
 
 
 
-        #region Region - interakcja użytkownika
+        #region Region - interakcja użytkownika w głównym pasku i oknie programu
 
 
         /// <summary>
@@ -150,57 +218,11 @@ namespace EmailNotifier
             stopUserNotification();
             if (newEmailsReceived)
             {
-                displayNewMessages();
+                displayNewEmails();
                 newEmailsReceived = false;
             }
         }
 
-
-
-        /// <summary>
-        /// ujednolica zawartość słowników kont: przechowywanego w tym oknie ze słownikiem konfiguracji kont otrzymanym z okna wczytywania konfiguracji
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="args"></param>
-        private void configurationFormSaveButtonClicked(object sender, ConfigurationFormEventArgs args)
-        {
-            Form configForm = sender as Form;
-
-            // aktualizaję konfigurację konta, jeżeli to konto jest w obu słownikach; 
-            //dodaję nowe konto jeżeli go nie ma w słowniku kont a jest w słowniku otrzymanym z okna konfiguracji
-            foreach (string accountName in args.emailAccountConfigs.Keys)
-            {
-                IEmailAccountConfiguration accountConfig;
-                args.emailAccountConfigs.TryGetValue(accountName, out accountConfig);
-                EmailAccount account;
-                if (mailBoxes.ContainsKey(accountName))
-                {
-                    mailBoxes.TryGetValue(accountName, out account);
-                    account.configuration = accountConfig;
-                }
-                else
-                {
-                    EmailAccount newAccount = new EmailAccount();
-                    newAccount.configuration = accountConfig;
-                    newAccount.name = accountName;
-                    mailBoxes.Add(accountName, newAccount);
-                }
-            }
-
-            // usuwam konto które jest w słowniku kont a nie ma go w słowniku otrzymanym z okna konfiguracji
-            string[] oldAccountNames = new string[mailBoxes.Keys.Count];
-            mailBoxes.Keys.CopyTo(oldAccountNames, 0);
-            foreach (string accountName in oldAccountNames)
-            {
-                if (!args.emailAccountConfigs.ContainsKey(accountName))
-                {
-                    mailBoxes.Remove(accountName);
-                }
-            }
-            configForm.Close();
-        }
-
- 
 
 
         //
@@ -229,7 +251,7 @@ namespace EmailNotifier
                 if (checkForEmails())
                 {
                     saveDataToFile();
-                    displayNewMessages();
+                    displayNewEmails();
                 }
                 else
                 {
@@ -246,17 +268,13 @@ namespace EmailNotifier
 
         private void ShowNewEmailsButton_Click(object sender, EventArgs e)
         {
-            displayNewMessages();
+            displayNewEmails();
         }
 
 
         private void ShowAllEmailsButton_Click(object sender, EventArgs e)
         {
-            emailsDisplayed = EmailListType.allEmails;
-            displayMessages();
-            hideEmailsButton.Enabled = true;
-            showNewEmailsButton.Enabled = false;
-            showAllEmailsButton.Enabled = false;
+            displayAllEmails();
         }
 
 
@@ -277,6 +295,19 @@ namespace EmailNotifier
         }
 
 
+        private void ListView_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            displayEmailBody(sender);
+        }
+
+
+        private void ListView_KeyDown(object sender, KeyEventArgs e)
+        {
+            markEmailsForDeletion(sender, e);
+        }
+
+
+
         /// <summary>
         /// uruchamia funkcję zamykania okna wyświetlania emaili, jeżeli jest ono otwarte, w celu zapisania ewentualnych zmian
         /// </summary>
@@ -286,6 +317,8 @@ namespace EmailNotifier
         {
             if (MyMessageBox.display("This will exit the application, monitoring of email accounts will stop. Proceed?", MyMessageBoxType.YesNo) == MyMessageBoxResults.Yes)
             {
+                if (emailsDeletedFromServer)
+                    saveDataToFile();
                 if (emailsDisplayed != EmailListType.none)
                     closeEmailsDisplayWindow();
             }
@@ -295,6 +328,57 @@ namespace EmailNotifier
             }
         }
 
+
+        #endregion
+
+
+
+        #region Region - interakcja użytkownika - przechwytywanie zdarzeń z innych okien programu
+
+
+
+        /// <summary>
+        /// ujednolica zawartość słowników kont: przechowywanego w tym oknie ze słownikiem konfiguracji kont otrzymanym z okna wczytywania konfiguracji
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="args"></param>
+        private void configurationFormSaveButtonClicked(object sender, ConfigurationFormEventArgs args)
+        {
+            Form configForm = sender as Form;
+
+            // aktualizaję konfigurację konta, jeżeli to konto jest w obu słownikach; 
+            //dodaję nowe konto jeżeli go nie ma w słowniku kont a jest w słowniku otrzymanym z okna konfiguracji
+            foreach (string accountName in args.emailAccountConfigs.Keys)
+            {
+                IEmailAccountConfiguration accountConfig;
+                args.emailAccountConfigs.TryGetValue(accountName, out accountConfig);
+                EmailAccount account;
+                if (mailBoxesDict.ContainsKey(accountName))
+                {
+                    mailBoxesDict.TryGetValue(accountName, out account);
+                    account.configuration = accountConfig;
+                }
+                else
+                {
+                    EmailAccount newAccount = new EmailAccount();
+                    newAccount.configuration = accountConfig;
+                    newAccount.name = accountName;
+                    mailBoxesDict.Add(accountName, newAccount);
+                }
+            }
+
+            // usuwam konto które jest w słowniku kont a nie ma go w słowniku otrzymanym z okna konfiguracji
+            string[] oldAccountNames = new string[mailBoxesDict.Keys.Count];
+            mailBoxesDict.Keys.CopyTo(oldAccountNames, 0);
+            foreach (string accountName in oldAccountNames)
+            {
+                if (!args.emailAccountConfigs.ContainsKey(accountName))
+                {
+                    mailBoxesDict.Remove(accountName);
+                }
+            }
+            configForm.Close();
+        }
 
         #endregion
 
@@ -342,129 +426,124 @@ namespace EmailNotifier
 
 
 
-        private void setProgramSettings(object sender, SettingsArgs args)
+        #region Region - czytanie i kasowanie emaili z serwisu
+
+        //tworzy nową instancję serwisu w zależności od jego rodzaju
+        private void getEmailService(IEmailAccountConfiguration emailConfiguration)
         {
-            ProgramSettings.numberOfEmailsKept = args.emailNumberKept;
-            ProgramSettings.checkEmailTimespan = args.emailCheckTimespan;
-            ProgramSettings.showNotificationTimespan = args.notificationBubbleTimespan;
-            ProgramSettings.deleteCheckedEmails = args.deleteCheckedEmails;
-            ProgramSettings.numberOfEmailsAtSetup = args.emailNumberAtSetup;
-            setTimers();
+            switch (emailConfiguration.receiveServer.serverType)
+            {
+                case ServerType.IMAP:
+                    emailService = new EmailServiceImap(emailConfiguration);
+                    break;
+                case ServerType.POP3:
+                    emailService = new EmailServicePop(emailConfiguration);
+                    break;
+            }
         }
 
 
-        /// <summary>
-        /// usuwa maile zaznaczone przez użytkownika ze słownika nowych maili
-        /// </summary>
-        private void updateNewEmailsDict()
+        //główna metoda uruchamiana ręcznie oraz przez timer
+        private bool checkForEmails()
         {
-            EmailAccount account = null;
-            List<string> emailIds = null;
-            foreach(string accountName in checkedEmailsDict.Keys)
+            bool messagesReceived = false;
+
+            if (!NetworkInterface.GetIsNetworkAvailable())       //nowe wiadomości sprawdzam tylko wtedy gdy jest internet
             {
-                mailBoxes.TryGetValue(accountName, out account);
-                checkedEmailsDict.TryGetValue(accountName, out emailIds);
-                foreach(string emailId in emailIds)
-                {
-                    account.removeNewEmail(emailId);
-                }
-            }   
-        }
-
-
-
-
-        /// <summary>
-        /// czyta dane kont pocztowych z pliku
-        /// </summary>
-        /// <param name="fileName"></param>
-        private void readDataFromFile(string fileName)
-        {
-            DataBundle dataBundle;
-
-            try
+                handleEmailServiceException(new EmailServiceException("brak internetu"));
+            }
+            else
             {
-                using (FileStream fileStream = new FileStream(fileName, FileMode.Open))
+                foreach (string mailboxName in this.mailBoxesDict.Keys)
                 {
-                    byte[] buffer = new byte[fileStream.Length];
-                    using (BinaryReader binReader = new BinaryReader(fileStream))
+                    try
                     {
-                        buffer = binReader.ReadBytes(buffer.Length);
+                        EmailAccount mailbox;
+                        mailBoxesDict.TryGetValue(mailboxName, out mailbox);
+
+                        if (mailbox.allEmailsList.Count == 0)
+                        {
+                            if (getMessages(mailbox, ProgramSettings.numberOfEmailsAtSetup))
+                                messagesReceived = true;
+                        }
+                        else
+                        {
+                            IEmailMessage newestEmail = mailbox.hasNewEmails ? mailbox.newEmailsList.First.Value : mailbox.allEmailsList.First.Value;
+
+                            if (getAndDeleteMessages(mailbox, newestEmail))
+                                messagesReceived = true;
+                        }
                     }
-
-                    MemoryStream originalStream = new MemoryStream(buffer);
-                    MemoryStream decompressedStream = new MemoryStream();
-
-                    using (GZipStream gzStream = new GZipStream(originalStream, CompressionMode.Decompress))
+                    catch (EmailServiceException e)
                     {
-                        gzStream.CopyTo(decompressedStream);
+                        handleEmailServiceException(e);
                     }
-
-                    originalStream.Close();
-                    BinaryFormatter formatter = new BinaryFormatter();
-                    decompressedStream.Position = 0;
-                    dataBundle = (DataBundle)formatter.Deserialize(decompressedStream);
-                    decompressedStream.Close();
                 }
-
-                this.mailBoxes = dataBundle.mailBoxes;
-                ProgramSettings.checkEmailTimespan = dataBundle.checkEmailTimespan;
-                ProgramSettings.numberOfEmailsKept = dataBundle.numberOfEmailsKept;
-                ProgramSettings.showNotificationTimespan = dataBundle.showNotificationTimespan;
-
             }
-            catch (System.IO.InvalidDataException exc)
-            {
-                MyMessageBox.display("błąd odczytu z pliku danych\r\n" + exc.Message +"\r\n"+ exc.StackTrace, MyMessageBoxType.Error);
-            }
-            catch (System.InvalidCastException ex)
-            {
-
-                MyMessageBox.display("błąd odczytu z pliku danych\r\n" + ex.Message + "\r\n" + ex.StackTrace, MyMessageBoxType.Error);
-            }
+            return messagesReceived;
         }
 
 
-       /// <summary>
-       /// zapisuje dane (listę kont pocztowych) do skompresowanego pliku binarnego
-       /// </summary>
-       /// <param name="fileName"></param>
-        private void saveDataToFile(string fileName)
+        //metoda czytająca z serwera tylko gdy konto jest nowododane, tzn użyta jest jednorazowo dla każdego konta
+        //dostarcza pierwszą paczkę emaili "na start"
+        //zwraca true jeżeli z serwera załadowane zostaną jakieś wiadomości
+        private bool getMessages(EmailAccount mailbox, int numberOfMessages = 4)
         {
-            DataBundle dataBundle = new DataBundle(mailBoxes)
+            IEmailAccountConfiguration emailConfiguration = mailbox.configuration;
+            getEmailService(emailConfiguration);
+
+            LinkedList<IEmailMessage> messages = emailService.ReceiveEmails(numberOfMessages);
+
+            if (messages.Count > 0)
             {
-                numberOfEmailsKept = ProgramSettings.numberOfEmailsKept,
-                showNotificationTimespan = ProgramSettings.showNotificationTimespan,
-                checkEmailTimespan = ProgramSettings.checkEmailTimespan
-            };
-
-            using (FileStream fileStream = new FileStream(fileName, FileMode.Create))
-            {
-                MemoryStream serializedMemoryStream = new MemoryStream();
-                MemoryStream compressedStream = new MemoryStream();
-                BinaryFormatter formatter = new BinaryFormatter();
-                formatter.Serialize(serializedMemoryStream, dataBundle);
-
-                using (GZipStream gzStream = new GZipStream(compressedStream, CompressionMode.Compress))
-                {
-                    serializedMemoryStream.WriteTo(gzStream);
-                }
-
-                using (BinaryWriter binWriter = new BinaryWriter(fileStream))
-                {
-                    binWriter.Write(compressedStream.ToArray());
-                }
-
-                serializedMemoryStream.Close();
-                compressedStream.Close();
-            }            
+                mailbox.addEmails(messages);
+                return true;
+            }
+            return false;
         }
 
-        private void saveDataToFile()
+
+        //metoda czytająca z serwera wiadomości nowsze od przekazanej jako parametr
+        //równocześnie kasuje z serwera zaznaczone wiadomości
+        //zwraca true jeżeli z serwera załadowane zostaną jakieś wiadomości
+        private bool getAndDeleteMessages(EmailAccount mailbox, IEmailMessage email)
         {
-            string fileName = (ProgramSettings.fileSavePath + ProgramSettings.emailDataFileName);
-            saveDataToFile(fileName);
+            bool messagesReceived = false;
+            IEmailAccountConfiguration emailConfiguration = mailbox.configuration;
+            getEmailService(emailConfiguration);
+            List<IEmailMessage> emailsToDelete;
+            emailsToBeDeletedDict.TryGetValue(mailbox.name, out emailsToDelete);
+            LinkedList<IEmailMessage> newEmails = emailService.ReceiveAndDelete(email, emailsToDelete);
+            if (newEmails.Count > 0)
+            {
+                mailbox.addEmails(newEmails);
+                messagesReceived = true;
+            }
+            if(emailsToBeDeletedDict.Count > 0)
+            {
+                updateAllEmailsDict();
+                emailsToBeDeletedDict.Clear();
+                emailsDeletedFromServer = true;
+            }
+
+            return messagesReceived;
         }
+
+
+        private void handleEmailServiceException(Exception e)
+        {
+            MyMessageBox.displayAndClose(e.Message + "    " + e.InnerException + "\r\nsee the errorlog file for details", 30);
+            string errorLogFileName = "emailNotifierError.log";
+            using (FileStream file = new FileStream(errorLogFileName, FileMode.Append))
+            {
+                StreamWriter writer = new StreamWriter(file);
+                writer.Write(DateTime.Now.ToString() + "\r\n" + e.Message + "\r\n" + e.InnerException + "\r\n" + e.Source + "\r\n" + e.StackTrace + "\r\n" + "\r\n");
+                writer.Close();
+            }
+        }
+
+
+        #endregion
 
 
 
@@ -472,17 +551,27 @@ namespace EmailNotifier
 
 
 
-        private void displayNewMessages()
+        private void displayNewEmails()
         {
             emailsDisplayed = EmailListType.newEmails;
-            displayMessages();
+            displayEmails();
             hideEmailsButton.Enabled = true;
             showNewEmailsButton.Enabled = false;
             showAllEmailsButton.Enabled = false;
         }
 
 
-        private void displayMessages()
+        private void displayAllEmails()
+        {
+            emailsDisplayed = EmailListType.allEmails;
+            displayEmails();
+            hideEmailsButton.Enabled = true;
+            showNewEmailsButton.Enabled = false;
+            showAllEmailsButton.Enabled = false;
+        }
+
+
+        private void displayEmails()
         {
             //
             //parametry do obliczenia rozmiarów okna
@@ -500,13 +589,13 @@ namespace EmailNotifier
             addInfoLabel();
             addTabControl();
 
-            foreach (string mailboxName in mailBoxes.Keys)
+            foreach (string mailboxName in mailBoxesDict.Keys)
             {
                 messagePacketHeight = 0;
                 emailNumber = 0;
 
                 EmailAccount mailbox;
-                mailBoxes.TryGetValue(mailboxName, out mailbox);
+                mailBoxesDict.TryGetValue(mailboxName, out mailbox);
                 LinkedList<IEmailMessage> emailsList = null;
 
                 switch (this.emailsDisplayed)
@@ -523,17 +612,22 @@ namespace EmailNotifier
                 {
                     TabPage tabPage = generateBlankTabPage();
                     ListView listView = generateBlankListview(listviewWidth);
+                    listView.Name = mailbox.name;
 
                     foreach (var emailMessage in emailsList)
                     {
-                        string[] emailDataRow = new string[] { emailMessage.messageDateTime.ToString(), emailMessage.FromAddress, emailMessage.Subject };
+                        if (!emailMessage.deletedFromServer)
+                        {
+                            string[] emailDataRow = new string[] { emailMessage.messageDateTime.ToString(), emailMessage.FromAddress, emailMessage.Subject };
 
-                        ListViewItem listRow = new ListViewItem(emailDataRow);
-                        listRow.Name = emailMessage.messageId;
-                        listRow.Tag = emailMessage.Content;
-                        listView.Items.Add(listRow);
+                            ListViewItem listRow = new ListViewItem(emailDataRow);
+                            listRow.Name = emailMessage.messageId;
+                            listRow.Tag = emailMessage;
+                            listRow.ImageIndex = emailMessage.markedForDeletion ? 0 : -1;
+                            listView.Items.Add(listRow);
 
-                        emailNumber++;
+                            emailNumber++;
+                        }
                     }
                     messagePacketHeight += emailNumber * (listView.Font.Height + 5);        //liczę mnożąc liczbę wierszy przez wysokość jednego wiersza, dodając odstępy między wierszami
 
@@ -575,6 +669,21 @@ namespace EmailNotifier
             emailDisplayTabControl.Size = new System.Drawing.Size(750, 50);
             this.Controls.Add(emailDisplayTabControl);
         }
+
+
+        private TabPage generateBlankTabPage()
+        {
+            TabPage tabPage = new TabPage();
+            tabPage.Location = new System.Drawing.Point(0, 0);
+            tabPage.Padding = new Padding(3);
+            tabPage.Size = new System.Drawing.Size(100, 74);
+            tabPage.Text = "tabPage1";
+            tabPage.UseVisualStyleBackColor = true;
+            tabPage.AutoScroll = true;
+            tabPage.SuspendLayout();
+            return tabPage;
+        }
+
 
 
         private void addInfoLabel()
@@ -621,7 +730,7 @@ namespace EmailNotifier
             listView.MultiSelect = false;
             listView.Scrollable = true;
             listView.Location = new System.Drawing.Point(0, 0);
-            listView.Size = new System.Drawing.Size(listviewWidth, 500);
+            listView.Size = new System.Drawing.Size(listviewWidth, 500);        //wysokość i tak jest później korygowana w zależności od liczby wiadomości
             listView.Anchor = (AnchorStyles.Top | AnchorStyles.Left);
             listView.TabIndex = 3;
             listView.UseCompatibleStateImageBehavior = false;
@@ -636,6 +745,9 @@ namespace EmailNotifier
             //do wyświetlania treści wiadomości po zaznaczeniu wiadomości na liście
             listView.SelectedIndexChanged += new System.EventHandler(ListView_SelectedIndexChanged);
 
+            //do zaznaczania wiadomości do skasowania
+            listView.KeyDown += new System.Windows.Forms.KeyEventHandler(ListView_KeyDown);
+
             columnHeader1.Width = 150;
             columnHeader1.Text = "         Date";
             columnHeader2.Width = 300;
@@ -643,18 +755,78 @@ namespace EmailNotifier
             columnHeader3.Width = 550;
             columnHeader3.Text = "Subject";
 
+            //ikonki przy wiadomościach na liście
+            ImageList listViewIcons = new ImageList();
+            listViewIcons.Images.Add(Properties.Resources.trash_16);
+            listView.SmallImageList = listViewIcons;
+
             return listView;
         }
 
 
-        private void ListView_SelectedIndexChanged(object sender, EventArgs e)
+        // otwieranie okna z treścią wiadomości
+        private void displayEmailBody(object sender)
         {
             ListView listView = sender as ListView;
+
             if (listView.SelectedItems.Count > 0)
             {
                 ListViewItem selected = listView.SelectedItems[0];
-                string msgText = selected.Tag != null ? selected.Tag.ToString() : "wiadomość nie zawiera treści";
+                IEmailMessage selectedMessage = selected.Tag as IEmailMessage;
+
+                string msgText = selectedMessage.Content != null ? selectedMessage.Content : "wiadomość nie zawiera treści";
                 MyMessageBox.display(msgText);
+            }
+        }
+
+
+
+        // zaznaczanie wiadomości do skasowania, uruchamiana osobno dla każdego mailboxa
+        //bo senderem jest lista, która jest osobna dla każdego mailboxa
+        private void markEmailsForDeletion(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Delete)
+            {
+                ListView listView = sender as ListView;
+                string mailboxName = listView.Name;
+
+                List<IEmailMessage> emailsToDelete;
+                if (emailsToBeDeletedDict.ContainsKey(mailboxName))       
+                {
+                    emailsToBeDeletedDict.TryGetValue(mailboxName, out emailsToDelete);
+                }
+                else
+                {
+                    emailsToDelete = new List<IEmailMessage>();
+                    emailsToBeDeletedDict.Add(mailboxName, emailsToDelete);
+                }
+
+                ListView.CheckedListViewItemCollection checkedItems = listView.CheckedItems;
+                foreach (ListViewItem item in checkedItems)
+                {
+                    item.ImageIndex = item.ImageIndex < 0 ? 0 : -1;
+                    toggleDeleteEmail(item, emailsToDelete, mailboxName);
+                }
+                listView.Refresh();
+            }
+        }
+
+
+        private void toggleDeleteEmail(ListViewItem item, List<IEmailMessage> emailsToDelete, string mailboxName)
+        {
+            IEmailMessage message = item.Tag as IEmailMessage;
+            EmailAccount mailbox;
+            mailBoxesDict.TryGetValue(mailboxName, out mailbox);
+
+            if (emailsToDelete.Contains(message))
+            {
+                mailbox.markEmailDoNotDelete(message);
+                emailsToDelete.Remove(message);
+            }
+            else
+            {
+                mailbox.markEmailDelete(message);
+                emailsToDelete.Add(message);
             }
         }
 
@@ -709,25 +881,9 @@ namespace EmailNotifier
         #endregion
 
 
-        private TabPage generateBlankTabPage()
-        {
-            TabPage tabPage = new TabPage();
-            tabPage.Location = new System.Drawing.Point(0, 0);
-            tabPage.Padding = new Padding(3);
-            tabPage.Size = new System.Drawing.Size(100, 74);
-            tabPage.Text = "tabPage1";
-            tabPage.UseVisualStyleBackColor = true;
-            tabPage.AutoScroll = true;
-            tabPage.SuspendLayout();
-            return tabPage;
-        }
 
 
-
-
-        /// <summary>
-        /// zamyka okno wyświetlania emaili, aktualizując nowe emaile w razie potrzeby i zapisując zmiany na dysk
-        /// </summary>
+        // zamyka okno wyświetlania emaili, aktualizując nowe emaile w razie potrzeby i zapisując zmiany na dysk
         private void closeEmailsDisplayWindow()
         {
             //wychwytuję zaznaczone emaile w każdej zakładce, ale tylko wtedy gdy wyświetlona była lista nowych maili
@@ -742,14 +898,15 @@ namespace EmailNotifier
                     string accountName = page.Text;
                     Control.ControlCollection tabPageContent = page.Controls;
                     ListView emailsDisplay = tabPageContent[0] as ListView;             //każdy tab zawiera tylko jedną listę
-                    ListView.CheckedListViewItemCollection checkedEmails = emailsDisplay.CheckedItems;
-                    List<string> checkedEmailsIDs = new List<string>();
-                    foreach (ListViewItem item in checkedEmails)
+                    ListView.CheckedListViewItemCollection checkedItems = emailsDisplay.CheckedItems;
+                    List<IEmailMessage> checkedEmails = new List<IEmailMessage>();
+                    foreach (ListViewItem item in checkedItems)
                     {
-                        checkedEmailsIDs.Add(item.Name);
+                        IEmailMessage message = item.Tag as IEmailMessage;
+                        checkedEmails.Add(message);
                     }
-                    checkedEmailsDict.Add(accountName, checkedEmailsIDs);
-                    numberOfCheckedEmails += checkedEmailsIDs.Count;
+                    checkedEmailsDict.Add(accountName, checkedEmails);
+                    numberOfCheckedEmails += checkedEmails.Count;
                 }
                 if (numberOfCheckedEmails > 0)
                 {                                                   //aktualizuję słownik i zapisuję zmiany na dysk
@@ -769,94 +926,110 @@ namespace EmailNotifier
             showAllEmailsButton.Enabled = true;
         }
 
+ 
+
         #endregion
 
 
 
-        #region Region - czytanie emaili z serwisu
+        #region Region - zapisywanie ustawień i danych
 
 
-        private bool checkForEmails()
+
+        private void setProgramSettings(object sender, SettingsArgs args)
         {
-            bool messagesReceived = false;
-
-            if (!NetworkInterface.GetIsNetworkAvailable())       //nowe wiadomości sprawdzam tylko wtedy gdy jest internet
-            {
-                handleEmailServiceException(new EmailServiceException("brak internetu"));
-            }
-            else
-            {
-                foreach (string mailboxName in this.mailBoxes.Keys)
-                {
-                    try
-                    {
-                        EmailAccount mailbox;
-                        mailBoxes.TryGetValue(mailboxName, out mailbox);
-
-                        if (mailbox.allEmailsList.Count == 0)
-                        {
-                            if (getMessages(mailbox, ProgramSettings.numberOfEmailsAtSetup))
-                                messagesReceived = true;
-                        }
-                        else
-                        {
-                            IEmailMessage newestEmail = mailbox.hasNewEmails ? mailbox.newEmailsList.First.Value : mailbox.allEmailsList.First.Value;
-
-                            if (getMessages(mailbox, newestEmail))
-                                messagesReceived = true;
-                        }
-                    }
-                    catch (EmailServiceException e)
-                    {
-                        handleEmailServiceException(e);
-                    }
-                }
-            }
-            return messagesReceived;
+            ProgramSettings.numberOfEmailsKept = args.emailNumberKept;
+            ProgramSettings.checkEmailTimespan = args.emailCheckTimespan;
+            ProgramSettings.showNotificationTimespan = args.notificationBubbleTimespan;
+            ProgramSettings.deleteCheckedEmails = args.deleteCheckedEmails;
+            ProgramSettings.numberOfEmailsAtSetup = args.emailNumberAtSetup;
+            setTimers();
         }
 
 
-        private bool getMessages(EmailAccount mailbox, int numberOfMessages=4)
+        /// <summary>
+        /// usuwa maile zaznaczone przez użytkownika ze słownika nowych maili
+        /// </summary>
+        private void updateNewEmailsDict()
         {
-            IEmailAccountConfiguration emailConfiguration = mailbox.configuration;
-            EmailService emailService = new EmailService(emailConfiguration);
-            LinkedList<IEmailMessage> messages = emailService.ReceiveEmails(numberOfMessages);
-            if (messages.Count > 0)
+            EmailAccount account = null;
+            List<IEmailMessage> emails = null;
+            foreach (string accountName in checkedEmailsDict.Keys)
             {
-                mailbox.addEmail(messages);
-                return true;
+                mailBoxesDict.TryGetValue(accountName, out account);
+                checkedEmailsDict.TryGetValue(accountName, out emails);
+                foreach (IEmailMessage email in emails)
+                {
+                    account.newEmailsList.Remove(email);
+                }
             }
-            return false;
         }
 
 
-        private bool getMessages(EmailAccount mailbox, IEmailMessage email)
+        /// <summary>
+        /// emaile usunięte z serwera muszą nadal pozostać w słowniku wszystkich maili, inaczej przy następnym sprawdzeniu 
+        /// ponownie ściągnięte zostaną maile ściągnięte poprzednio i skasowane
+        /// muszą tylko być odpowiednio oznaczone, żeby nie były wyświetlane; kasuję też zawartość żeby oszczędzić miejsce
+        /// </summary>
+        private void updateAllEmailsDict()
         {
-                IEmailAccountConfiguration emailConfiguration = mailbox.configuration;
-                EmailService emailService = new EmailService(emailConfiguration);
-                LinkedList<IEmailMessage> messages = emailService.ReceiveEmails(email);
-                if (messages.Count > 0)
+            if(emailsToBeDeletedDict.Count > 0)
+            {
+                List<IEmailMessage> emails;
+                EmailAccount account;
+                foreach(string accountName in emailsToBeDeletedDict.Keys)
                 {
-                    mailbox.addEmail(messages);
-                    return true;
+                    emailsToBeDeletedDict.TryGetValue(accountName, out emails);
+                    mailBoxesDict.TryGetValue(accountName, out account);
+
+                    account.markEmailsDeletedFromServer(emails);
                 }
+            }
             
-            return false;
         }
 
-        private void handleEmailServiceException(Exception e)
+
+        /// <summary>
+        /// zapisuje dane (listę kont pocztowych) do skompresowanego pliku binarnego
+        /// </summary>
+        /// <param name="fileName"></param>
+        private void saveDataToFile(string fileName)
         {
-            MyMessageBox.displayAndClose(e.Message + "    " + e.InnerException + "\r\nsee the errorlog file for details", 30);
-            string errorLogFileName = "emailNotifierError.log";
-            using (FileStream file = new FileStream(errorLogFileName, FileMode.Append))
+            DataBundle dataBundle = new DataBundle(mailBoxesDict, emailsToBeDeletedDict)
             {
-                StreamWriter writer = new StreamWriter(file);
-                writer.Write(DateTime.Now.ToString() + "\r\n" + e.Message + "\r\n" + e.InnerException + "\r\n" + e.Source + "\r\n" + e.StackTrace + "\r\n" + "\r\n");
-                writer.Close();
+                numberOfEmailsKept = ProgramSettings.numberOfEmailsKept,
+                showNotificationTimespan = ProgramSettings.showNotificationTimespan,
+                checkEmailTimespan = ProgramSettings.checkEmailTimespan
+            };
+
+            using (FileStream fileStream = new FileStream(fileName, FileMode.Create))
+            {
+                MemoryStream serializedMemoryStream = new MemoryStream();
+                MemoryStream compressedStream = new MemoryStream();
+                BinaryFormatter formatter = new BinaryFormatter();
+                formatter.Serialize(serializedMemoryStream, dataBundle);
+
+                using (GZipStream gzStream = new GZipStream(compressedStream, CompressionMode.Compress))
+                {
+                    serializedMemoryStream.WriteTo(gzStream);
+                }
+
+                using (BinaryWriter binWriter = new BinaryWriter(fileStream))
+                {
+                    binWriter.Write(compressedStream.ToArray());
+                }
+
+                serializedMemoryStream.Close();
+                compressedStream.Close();
             }
         }
 
-
+        private void saveDataToFile()
+        {
+            string fileName = (ProgramSettings.fileSavePath + ProgramSettings.emailDataFileName);
+            saveDataToFile(fileName);
+            emailsDeletedFromServer = false;
+        }
 
         #endregion
 

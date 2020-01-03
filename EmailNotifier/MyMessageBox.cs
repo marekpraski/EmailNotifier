@@ -36,6 +36,7 @@ namespace EmailNotifier
         private int maxTextBoxHeigth = 700;
         private int textPadding = 30;               //odległość tekstu w textboxie od krawędzi tekstboxu, używam obliczając wysokość tekstboxa gdy występują długie linie
 
+
         public MyMessageBox(string message, MyMessageBoxType mbType)
         {
             InitializeComponent();
@@ -46,12 +47,15 @@ namespace EmailNotifier
 
         public static MyMessageBoxResults display(string message, MyMessageBoxType mbType = MyMessageBoxType.Information)
         {
+
             MyMessageBox mmb = new MyMessageBox(message, mbType);
             mmb.textBox1.Text = mmb.message;
             mmb.ShowDialog();
             mmb.BringToFront();
             return mmb.mbResult;
         }
+
+
 
         public static void displayAndClose(string message, int timeInSeconds = 2)
         {
