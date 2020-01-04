@@ -44,7 +44,7 @@ namespace EmailNotifier
             //w RELEASE startuje zminimalizowany
 #if DEBUG
 #else
-            if (mailBoxes.Count > 0)
+            if (mailBoxesDict.Count > 0)
             {
                 this.WindowState = FormWindowState.Minimized;
                 this.ShowInTaskbar = false;
