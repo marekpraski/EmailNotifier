@@ -77,5 +77,40 @@ namespace EmailNotifier
         }
 
 
+        /// <summary>
+        /// docina listę wszystkich emaili do liczby widocznych emaili zdefiniowanej przez użytkownika, usuwając odpowiednią liczbę najstarszych maili.
+        /// zadziała tylko jeżeli liczba nowych emaili jest zero;
+        /// emailTrimIndex - pozycja na liście allEmailsList powyżej której usuwam emaile z tej listy
+        /// </summary>
+        /// <param name="emailTrimIndex"></param>
+        public void trimEmailList(int numberOfEmailsDisplayed, int emailTrimIndex)
+        {
+            //nie mogę po prostu zastosować parametru z ustawień, bo lista maili zawiera też
+            //maile oznaczone jako skasowane z serwera, które nie są wyświetlane
+            //a parametr liczby trzymanych maili odnosi się do maili widocznych dla użytkownika
+
+            //jeżeli użytkownik zaznaczy email do skasowania w oknie wszystkich emaili, a email ten jest nowym mailem
+            //to email ten nie jest usuwany z listy nowych maili; można by to obsłużyć podczas operacji zaznaczania maili do skasowania
+            //ale chyba najprościej czyścić takie przypadki w tym miejscu
+            //zakładam że lista nowych maili będzie zawsze stosunkowo krótka, więc nie zajmie to dużo czasu
+            if(newEmailsList.Count > 0)
+            {
+                for(int i=0; i<newEmailsList.Count; i++)
+                {
+                    if (newEmailsList.ElementAt(i).deletedFromServer)
+                        newEmailsList.Remove(newEmailsList.ElementAt(i));
+                }
+            }
+
+            if(newEmailsList.Count == 0)
+            {
+                while (allEmailsList.Count > emailTrimIndex)
+                {
+                    allEmailsList.RemoveLast();
+                }
+            }
+        }
+
+
     }
 }

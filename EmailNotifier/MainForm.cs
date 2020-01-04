@@ -505,7 +505,7 @@ namespace EmailNotifier
                         }
                         else
                         {
-                            IEmailMessage newestEmail = mailbox.hasNewEmails ? mailbox.newEmailsList.First.Value : mailbox.allEmailsList.First.Value;
+                            IEmailMessage newestEmail = mailbox.allEmailsList.First.Value;
 
                             if (getAndDeleteMessages(mailbox, newestEmail))
                                 messagesReceived = true;
@@ -644,7 +644,7 @@ namespace EmailNotifier
             int listviewWidth = 1000 + 30;          //suma szerokości kolumn + margines
 
             int messagePacketHeight;
-            int emailNumber;
+            int displayedEmailNumber;
 
             this.SuspendLayout();
 
@@ -653,9 +653,6 @@ namespace EmailNotifier
 
             foreach (string mailboxName in mailBoxesDict.Keys)
             {
-                messagePacketHeight = 0;
-                emailNumber = 0;
-
                 EmailAccount mailbox;
                 mailBoxesDict.TryGetValue(mailboxName, out mailbox);
                 LinkedList<IEmailMessage> emailsList = null;
@@ -676,9 +673,13 @@ namespace EmailNotifier
                     ListView listView = generateBlankListview(listviewWidth);
                     listView.Name = mailbox.name;
 
+                    int emailIndex = 0;    //licznik wiadomości; posłuży do skrócenia listy do tej liczby wiadomości, którą użytkownik zdefiniował w konfiguracji
+
+                    displayedEmailNumber = 0;       //kolejny numer wyświetlonej wiadomości służy do obliczenia wielkości okna
+                    messagePacketHeight = 0;
                     foreach (var emailMessage in emailsList)
                     {
-                        if (!emailMessage.deletedFromServer)
+                        if (!emailMessage.deletedFromServer)        //nagłówki emaili skasowanych z serwera pozostawiam na liście, ale nie chcę ich wyświetlać
                         {
                             string[] emailDataRow = new string[] { emailMessage.messageDateTime.ToString(), emailMessage.FromAddress, emailMessage.Subject };
 
@@ -688,10 +689,15 @@ namespace EmailNotifier
                             listRow.ImageIndex = emailMessage.markedForDeletion ? 0 : -1;
                             listView.Items.Add(listRow);
 
-                            emailNumber++;
+                            displayedEmailNumber++;
                         }
+                        emailIndex = displayedEmailNumber <= ProgramSettings.numberOfEmailsKept ? emailIndex +1 : emailIndex;  //zatrzymuję licznik gdy dojdę do max. liczby wiadomości
                     }
-                    messagePacketHeight += emailNumber * (listView.Font.Height + 5);        //liczę mnożąc liczbę wierszy przez wysokość jednego wiersza, dodając odstępy między wierszami
+                    //uruchamiam funkcję usuwającą nadliczbowe emaile z mailboxa
+                    if (emailsDisplayed == EmailListType.allEmails && displayedEmailNumber > ProgramSettings.numberOfEmailsKept)
+                        mailbox.trimEmailList(displayedEmailNumber, emailIndex);
+
+                    messagePacketHeight += displayedEmailNumber * (listView.Font.Height + 5);        //liczę mnożąc liczbę wierszy przez wysokość jednego wiersza, dodając odstępy między wierszami
 
                     listView.Height = messagePacketHeight + 30;         //dodaję margines
                     int maxHeigth =  listView.Height > maxTabPageHeigth ? maxTabPageHeigth : listView.Height;
@@ -1025,7 +1031,6 @@ namespace EmailNotifier
             ProgramSettings.numberOfEmailsKept = args.emailNumberKept;
             ProgramSettings.checkEmailTimespan = args.emailCheckTimespan;
             ProgramSettings.showNotificationTimespan = args.notificationBubbleTimespan;
-            ProgramSettings.deleteCheckedEmails = args.deleteCheckedEmails;
             ProgramSettings.numberOfEmailsAtSetup = args.emailNumberAtSetup;
             setTimers();
         }

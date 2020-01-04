@@ -11,7 +11,6 @@ namespace EmailNotifier
         public int checkEmailTimespan { get; set; }           //minut 
         public int notificationFrequency { get; set; }      //sekund
         public int numberOfEmailsKept { get; set; }           //przeczytanych maili
-        public bool deleteCheckedEmails { get; set; }
         public int emailNumberAtSetup { get; set; }        //emaili wczytywanych na starcie po utworzeniu konta
         public SettingsForm()
         {
@@ -24,14 +23,12 @@ namespace EmailNotifier
             this.checkEmailTimespan = ProgramSettings.checkEmailTimespan;
             this.notificationFrequency = ProgramSettings.showNotificationTimespan;
             this.numberOfEmailsKept = ProgramSettings.numberOfEmailsKept;
-            this.deleteCheckedEmails = ProgramSettings.deleteCheckedEmails;
             this.emailNumberAtSetup = ProgramSettings.numberOfEmailsAtSetup;
 
             checkEmailTimerTextbox.Text = checkEmailTimespan.ToString();
             notificationTimerTextbox.Text = notificationFrequency.ToString();
             numberOfEmailsKeptTextbox.Text = numberOfEmailsKept.ToString();
             numberOfEmailsAtSetupTextBox.Text = emailNumberAtSetup.ToString();
-            deleteEmailsCheckBox.Checked = deleteCheckedEmails;
         }
 
 
@@ -45,7 +42,6 @@ namespace EmailNotifier
                     args.emailCheckTimespan = checkEmailTimespan;
                     args.notificationBubbleTimespan = notificationFrequency;
                     args.emailNumberKept = numberOfEmailsKept;
-                    args.deleteCheckedEmails = deleteCheckedEmails;
                     args.emailNumberAtSetup = emailNumberAtSetup;
                     saveSettingsEvent(this, args);
                     this.Close();
@@ -61,7 +57,6 @@ namespace EmailNotifier
                 notificationFrequency = validate(notificationTimerTextbox.Text);
                 numberOfEmailsKept = validate(numberOfEmailsKeptTextbox.Text);
                 emailNumberAtSetup = validate(numberOfEmailsAtSetupTextBox.Text);
-                deleteCheckedEmails = deleteEmailsCheckBox.Checked;
             }
             catch (ArgumentException ex)
             {

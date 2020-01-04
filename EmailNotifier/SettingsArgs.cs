@@ -11,7 +11,6 @@ namespace EmailNotifier
         public int emailCheckTimespan { get; set; }
         public int notificationBubbleTimespan { get; set; }
         public int emailNumberKept { get; set; }
-        public bool deleteCheckedEmails { get; set; }
         public int emailNumberAtSetup { get; set; }
     }
 }
