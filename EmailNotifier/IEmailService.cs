@@ -11,8 +11,10 @@ namespace EmailNotifier
 
 
         void SendEmails(IList<IEmailMessage> emailMessages);
+        void DeleteEmails(IList<IEmailMessage> emailsToDelete);
         LinkedList<IEmailMessage> ReceiveEmails(int numberOfMessagesToReceive);
         LinkedList<IEmailMessage> ReceiveEmails(IEmailMessage lastEmail);
+        LinkedList<IEmailMessage> ReceiveAndDelete(IEmailMessage lastEmail, IList<IEmailMessage> emailsToDelete = null);
 
 
     }

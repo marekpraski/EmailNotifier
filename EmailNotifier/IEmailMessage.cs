@@ -15,5 +15,7 @@ namespace EmailNotifier
         DateTime messageDateTime { get; set; }
         EmailAddress SenderAddress { get; set; }
         string Content { get; set; }
+        bool markedForDeletion { get; set; }
+        bool deletedFromServer { get; set; }
     }
 }

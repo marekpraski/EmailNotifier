@@ -42,6 +42,7 @@
             this.textBox1.Size = new System.Drawing.Size(417, 96);
             this.textBox1.TabIndex = 0;
             this.textBox1.Text = "";
+            this.textBox1.LinkClicked += new System.Windows.Forms.LinkClickedEventHandler(this.TextBox1_LinkClicked);
             this.textBox1.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TextBox1_KeyPress);
             // 
             // groupBox1
@@ -52,14 +53,14 @@
             this.groupBox1.TabIndex = 1;
             this.groupBox1.TabStop = false;
             // 
-            // MMessageBox
+            // MyMessageBox
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(442, 243);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.textBox1);
-            this.Name = "MMessageBox";
+            this.Name = "MyMessageBox";
             this.Text = "MMessageBox";
             this.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.MyMessageBox_KeyPress);
             this.ResumeLayout(false);

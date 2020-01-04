@@ -17,24 +17,39 @@ namespace EmailNotifier
         public Form1()
         {
             InitializeComponent();
+            initialSetup();
 
+        }
 
+        private void initialSetup()
+        {
+            populateListview();
+            initializeEvent();
+        }
+
+        private void initializeEvent()
+        {
+            this.listView1.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.ListView1_ItemCheck);
+            //this.listView1.ItemChecked += new System.Windows.Forms.ItemCheckedEventHandler(this.ListView1_ItemChecked);
+        }
+
+        private void populateListview()
+        {
+            //this.listView1.ItemChecked -= ListView1_ItemChecked;
+            ImageList image = new ImageList();
+            image.ImageSize = new Size(16, 16);
+            image.Images.Add(Properties.Resources.trash_16);
+            listView1.SmallImageList = image;
 
             for (int i = 0; i < 10; i++)
             {
-                string[] s = new string[] { "Value " + i, "sub 1 " + i, "sub 2mmmmmmmmmmmmmmmmmmmmm " + i };
+                string[] s = new string[] { "Value " + i, "sub 1 " + i, "sub 2" + i };
                 ListViewItem item = new ListViewItem(s);
                 item.ToolTipText = i.ToString();
                 listView1.Items.Add(item);
             }
-            ImageList image = new ImageList();
-            image.ImageSize = new Size(200, 200);
-            ListViewItem imItem = new ListViewItem();
-            //imItem.
-            TextBox txt = new TextBox();
-            //imItem.Cont
-            
-            //dataGridView1.Rows.
+            //this.listView1.ItemChecked += ListView1_ItemChecked;
+
         }
 
         private void ListView1_MouseClick(object sender, MouseEventArgs e)
@@ -59,10 +74,7 @@ namespace EmailNotifier
             if (listView.SelectedItems.Count > 0)
             {
                 ListViewItem selected = listView.SelectedItems[0];
-                string txt = selected.Text;
-                //displayTooltip(listView,txt);
-                Form2 fm = new Form2();
-                fm.ShowDialog();
+                selected.ImageIndex = 0;
 
             }
         }
@@ -110,6 +122,44 @@ namespace EmailNotifier
 
             // Set up the ToolTip text for the Button and Checkbox.
             toolTip1.SetToolTip(control, message);
+        }
+
+        private void ListView1_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            
+        }
+
+        private void ListView1_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Delete)
+            {
+                ListView.CheckedListViewItemCollection checkedItems = listView1.CheckedItems;
+                foreach (ListViewItem item in checkedItems)
+                {
+                    item.ImageIndex = 0;
+                }
+            }
+        }
+
+        private void ListView1_ItemChecked(object sender, ItemCheckedEventArgs e)
+        {
+            MyMessageBox.display("aaa");
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+           
+        }
+
+        private void Button1_Click(object sender, EventArgs e)
+        {
+            MyMessageBox.display("http://google.com");
+            //System.Diagnostics.Process.Start("http://google.com");
+        }
+
+        private void ListView1_ItemCheck(object sender, ItemCheckEventArgs e)
+        {
+            MyMessageBox.display("aaa");
         }
     }
 }
