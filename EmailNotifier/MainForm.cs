@@ -59,10 +59,22 @@ namespace EmailNotifier
         {
             assertDataDirectoryExists();
             setupMailboxes();
+            setupStatusLabel();
             setTimers();
         }
 
-
+        private void setupStatusLabel()
+        {
+            if(mailBoxesDict.Count == 0)
+            {
+                statusLabel.Visible = true;
+                statusLabel.Text = "no email accounts defined";
+            }
+            else
+            {
+                statusLabel.Visible = false;
+            }
+        }
 
         private void setTimers()
         {
@@ -418,6 +430,7 @@ namespace EmailNotifier
                     mailBoxesDict.Remove(accountName);
                 }
             }
+            setupStatusLabel();
             configForm.Close();
         }
 
@@ -472,6 +485,7 @@ namespace EmailNotifier
         //tworzy nową instancję serwisu w zależności od jego rodzaju
         private void getEmailService(IEmailAccountConfiguration emailConfiguration)
         {
+            emailService = null;
             switch (emailConfiguration.receiveServer.serverType)
             {
                 case ServerType.POP:
@@ -501,6 +515,8 @@ namespace EmailNotifier
                     {
                         EmailAccount mailbox;
                         mailBoxesDict.TryGetValue(mailboxName, out mailbox);
+                        IEmailAccountConfiguration emailConfiguration = mailbox.configuration;
+                        getEmailService(emailConfiguration);
 
                         if (mailbox.allEmailsList.Count == 0)
                         {
@@ -530,8 +546,6 @@ namespace EmailNotifier
         //zwraca true jeżeli z serwera załadowane zostaną jakieś wiadomości
         private bool getMessages(EmailAccount mailbox, int numberOfMessages = 4)
         {
-            IEmailAccountConfiguration emailConfiguration = mailbox.configuration;
-            getEmailService(emailConfiguration);
 
             LinkedList<IEmailMessage> messages = emailService.ReceiveEmails(numberOfMessages);
 
@@ -550,21 +564,21 @@ namespace EmailNotifier
         private bool getAndDeleteMessages(EmailAccount mailbox, IEmailMessage email)
         {
             bool messagesReceived = false;
-            IEmailAccountConfiguration emailConfiguration = mailbox.configuration;
-            getEmailService(emailConfiguration);
+
             List<IEmailMessage> emailsToDelete;
             emailsToBeDeletedDict.TryGetValue(mailbox.name, out emailsToDelete);
             LinkedList<IEmailMessage> newEmails = emailService.ReceiveAndDelete(email, emailsToDelete);
+
+            if(emailsToDelete != null)
+            {
+                mailbox.markEmailsDeletedFromServer(emailsToDelete);
+                emailsToBeDeletedDict.Remove(mailbox.name);
+                emailsDeletedFromServer = true;
+            }
             if (newEmails.Count > 0)
             {
                 mailbox.addEmails(newEmails);
                 messagesReceived = true;
-            }
-            if(emailsToBeDeletedDict.Count > 0)
-            {
-                updateAllEmailsDict();
-                emailsToBeDeletedDict.Clear();
-                emailsDeletedFromServer = true;
             }
 
             return messagesReceived;
@@ -989,7 +1003,8 @@ namespace EmailNotifier
                 Control.ControlCollection tabControlContent = emailDisplayTabControl.Controls;
                 checkedEmailsDict.Clear();
                 int numberOfCheckedEmails = 0;                  //jeżeli zero, to nie wywołuję funkcji aktualizacji
-                foreach (Control c in tabControlContent)
+
+                foreach (Control c in tabControlContent)    //tzn dla każdego konta mailowego
                 {
                     TabPage page = c as TabPage;
                     string accountName = page.Text;
@@ -1061,28 +1076,6 @@ namespace EmailNotifier
             }
         }
 
-
-        /// <summary>
-        /// emaile usunięte z serwera muszą nadal pozostać w słowniku wszystkich maili, inaczej przy następnym sprawdzeniu 
-        /// ponownie ściągnięte zostaną maile ściągnięte poprzednio i skasowane
-        /// muszą tylko być odpowiednio oznaczone, żeby nie były wyświetlane; kasuję też zawartość żeby oszczędzić miejsce
-        /// </summary>
-        private void updateAllEmailsDict()
-        {
-            if(emailsToBeDeletedDict.Count > 0)
-            {
-                List<IEmailMessage> emails;
-                EmailAccount account;
-                foreach(string accountName in emailsToBeDeletedDict.Keys)
-                {
-                    emailsToBeDeletedDict.TryGetValue(accountName, out emails);
-                    mailBoxesDict.TryGetValue(accountName, out account);
-
-                    account.markEmailsDeletedFromServer(emails);
-                }
-            }
-            
-        }
 
 
         /// <summary>

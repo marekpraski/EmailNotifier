@@ -41,6 +41,7 @@
             this.infoButton = new System.Windows.Forms.ToolStripButton();
             this.checkEmailsTimer = new System.Windows.Forms.Timer(this.components);
             this.toggleNotifyiconTimer = new System.Windows.Forms.Timer(this.components);
+            this.statusLabel = new System.Windows.Forms.Label();
             this.toolStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -151,12 +152,23 @@
             // 
             this.toggleNotifyiconTimer.Tick += new System.EventHandler(this.ToggleNotifyiconTimer_Tick);
             // 
+            // statusLabel
+            // 
+            this.statusLabel.AutoSize = true;
+            this.statusLabel.Location = new System.Drawing.Point(38, 30);
+            this.statusLabel.Name = "statusLabel";
+            this.statusLabel.Size = new System.Drawing.Size(35, 13);
+            this.statusLabel.TabIndex = 3;
+            this.statusLabel.Text = "status";
+            this.statusLabel.Visible = false;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoScroll = true;
-            this.ClientSize = new System.Drawing.Size(214, 42);
+            this.ClientSize = new System.Drawing.Size(214, 45);
+            this.Controls.Add(this.statusLabel);
             this.Controls.Add(this.toolStrip1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Name = "MainForm";
@@ -182,6 +194,7 @@
         private System.Windows.Forms.Timer toggleNotifyiconTimer;
         private System.Windows.Forms.ToolStripButton settingsButton;
         private System.Windows.Forms.ToolStripButton infoButton;
+        private System.Windows.Forms.Label statusLabel;
     }
 }
 

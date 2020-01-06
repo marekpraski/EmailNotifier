@@ -91,7 +91,7 @@ namespace EmailNotifier
             authorisationComboBox.SelectedIndex = accountConfig.receiveServer.useAuthorisation == true ? 0 : 1;
 
             userNameTextBox.Text = accountConfig.username;
-            passwordTextBox.Text = ""; // accountConfig.password;
+            passwordTextBox.Text = accountConfig.password;
         }
 
 
