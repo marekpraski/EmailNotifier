@@ -1,5 +1,5 @@
 ﻿namespace EmailNotifier
 {
-    public enum ServerType { POP3, IMAP }
+    public enum ServerType { IMAP, POP }
 }
 

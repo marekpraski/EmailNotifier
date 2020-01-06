@@ -1,11 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace EmailNotifier
@@ -30,6 +25,7 @@ namespace EmailNotifier
         public ConfigurationForm(Dictionary<string, IEmailAccountConfiguration> accountConfigsDict) : this()
         {
             this.accountConfigsDict = accountConfigsDict;
+            populateProtocolTypesCombo();
             populateAuthorisationCombo();
             populateAccountNamesCombo();
         }
@@ -49,7 +45,7 @@ namespace EmailNotifier
             MyMessageBoxResults result = MyMessageBox.display("Usunąć zaznaczone konto?", MyMessageBoxType.YesNo);
             if(result == MyMessageBoxResults.Yes)
             {
-                string accountName = getAccountUrl();
+                string accountName = getAccountName();
                 accountConfigsDict.Remove(accountName);
                 ClearThisForm();
             }
@@ -87,27 +83,28 @@ namespace EmailNotifier
         private void accountNameComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
             string accountName = accountNameComboBox.Text;
-
             accountConfigsDict.TryGetValue(accountName, out accountConfig);
+
+            protocolTypeComboBox.Text = accountConfig.receiveServer.serverType.ToString();
             serverUrlTextBox.Text = accountConfig.receiveServer.url;
             portTextBox.Text = accountConfig.receiveServer.port.ToString();
             authorisationComboBox.SelectedIndex = accountConfig.receiveServer.useAuthorisation == true ? 0 : 1;
 
             userNameTextBox.Text = accountConfig.username;
-            passwordTextBox.Text = accountConfig.password;
+            passwordTextBox.Text = ""; // accountConfig.password;
         }
 
 
         private void urlHelpLabel_MouseEnter(object sender, EventArgs e)
         {
-            displayTooltip(sender, "choose from combo or type in");
+            displayTooltip(sender, "choose from combo or type in new");
 
         }
 
 
         private void PortHelpLabel_MouseEnter(object sender, EventArgs e)
         {
-            displayTooltip(sender, "995 - POP3 TSL authentication required \r\n110 - POP3 no TSL authentication");
+            displayTooltip(sender, "995 - POP3 TSL authentication required \r\n110 - POP3 no TSL authentication\r\n993 - IMAP TSL authentication");
         }
 
 
@@ -119,18 +116,18 @@ namespace EmailNotifier
 
         private bool addOrUpdateAccountConfiguration()
         {
-            string accountName = getAccountUrl();
+            string accountName = getAccountName();
             if (accountConfigsDict.ContainsKey(accountName))
             {
                 accountConfigsDict.TryGetValue(accountName, out accountConfig);
-                setAccountParameters(accountConfig);
+                getAccountConfigurationFromGUI(accountConfig);
                 return true;
             }
 
             if (accountName != "" && accountName != null)
             {
                 accountConfig = new EmailAccountConfiguration();
-                setAccountParameters(accountConfig);
+                getAccountConfigurationFromGUI(accountConfig);
                 accountConfigsDict.Add(accountName, accountConfig);
 
                 return true;
@@ -138,11 +135,15 @@ namespace EmailNotifier
             return false;
         }
 
-        private void setAccountParameters(IEmailAccountConfiguration emailConfig)
+
+        private void getAccountConfigurationFromGUI(IEmailAccountConfiguration emailConfig)
         {
             var receiveServer = new EmailServer();
 
-            receiveServer.serverType = ServerType.POP3;
+            ServerType serverType;
+            Enum.TryParse<ServerType>(protocolTypeComboBox.SelectedValue.ToString(), out serverType);
+            receiveServer.serverType = serverType;
+            
             receiveServer.url = serverUrlTextBox.Text;
             receiveServer.port = verifyInt(portTextBox.Text);
             receiveServer.useAuthorisation = getAuthorisation();
@@ -168,13 +169,19 @@ namespace EmailNotifier
         }
 
 
+        private void populateProtocolTypesCombo()
+        {
+            protocolTypeComboBox.DataSource = Enum.GetValues(typeof(ServerType));
+        }
+
+
 
         public bool getAuthorisation()
         {
             return true ? authorisationComboBox.SelectedIndex == 0 : false;
         }
 
-        public string getAccountUrl()
+        public string getAccountName()
         {
             return accountNameComboBox.Text;
         }

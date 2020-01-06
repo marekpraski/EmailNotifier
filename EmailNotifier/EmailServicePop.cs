@@ -112,11 +112,14 @@ namespace EmailNotifier
                 if (connectToServer()) {
 
                     int numberOfMessagesOnServer = emailClient.GetMessageCount();
+                    if (numberOfMessagesOnServer == 0)
+                    {
+                        throw new EmailServiceException("brak wiadomości na serwerze " + "emailClient.IsConnected " + emailClient.IsConnected);
+                    }
+
                     for (int i = numberOfMessagesOnServer - 1; i > 0 && i > (numberOfMessagesOnServer - 1 - numberOfMessagesToReceive); i--)
                     {
                         EmailMessage emailMessage = getOneMessage(i);
-                        var message = this.emailClient.GetMessage(i);
-
                         emailsReceived.AddLast(emailMessage);
                     }
                 }

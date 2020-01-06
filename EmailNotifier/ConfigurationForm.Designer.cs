@@ -48,6 +48,8 @@
             this.userNameLabel = new System.Windows.Forms.Label();
             this.portLabel = new System.Windows.Forms.Label();
             this.serverUrlLabel = new System.Windows.Forms.Label();
+            this.protocolTypeComboBox = new System.Windows.Forms.ComboBox();
+            this.label1 = new System.Windows.Forms.Label();
             this.toolStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -110,7 +112,7 @@
             this.portHelpLabel.Cursor = System.Windows.Forms.Cursors.Hand;
             this.portHelpLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Underline))), System.Drawing.GraphicsUnit.Point, ((byte)(238)));
             this.portHelpLabel.ForeColor = System.Drawing.SystemColors.HotTrack;
-            this.portHelpLabel.Location = new System.Drawing.Point(111, 82);
+            this.portHelpLabel.Location = new System.Drawing.Point(111, 114);
             this.portHelpLabel.Name = "portHelpLabel";
             this.portHelpLabel.Size = new System.Drawing.Size(15, 15);
             this.portHelpLabel.TabIndex = 25;
@@ -133,7 +135,7 @@
             // authorisationComboBox
             // 
             this.authorisationComboBox.FormattingEnabled = true;
-            this.authorisationComboBox.Location = new System.Drawing.Point(132, 105);
+            this.authorisationComboBox.Location = new System.Drawing.Point(132, 137);
             this.authorisationComboBox.Name = "authorisationComboBox";
             this.authorisationComboBox.Size = new System.Drawing.Size(100, 21);
             this.authorisationComboBox.TabIndex = 15;
@@ -141,7 +143,7 @@
             // authorisationLabel
             // 
             this.authorisationLabel.AutoSize = true;
-            this.authorisationLabel.Location = new System.Drawing.Point(12, 108);
+            this.authorisationLabel.Location = new System.Drawing.Point(12, 140);
             this.authorisationLabel.Name = "authorisationLabel";
             this.authorisationLabel.Size = new System.Drawing.Size(97, 13);
             this.authorisationLabel.TabIndex = 16;
@@ -162,33 +164,33 @@
             this.accountNameComboBox.Location = new System.Drawing.Point(132, 28);
             this.accountNameComboBox.Name = "accountNameComboBox";
             this.accountNameComboBox.Size = new System.Drawing.Size(240, 21);
-            this.accountNameComboBox.TabIndex = 12;
+            this.accountNameComboBox.TabIndex = 11;
             this.accountNameComboBox.SelectedIndexChanged += new System.EventHandler(this.accountNameComboBox_SelectedIndexChanged);
             // 
             // passwordTextBox
             // 
-            this.passwordTextBox.Location = new System.Drawing.Point(132, 153);
+            this.passwordTextBox.Location = new System.Drawing.Point(132, 185);
             this.passwordTextBox.Name = "passwordTextBox";
             this.passwordTextBox.Size = new System.Drawing.Size(240, 20);
             this.passwordTextBox.TabIndex = 19;
             // 
             // userNameTextBox
             // 
-            this.userNameTextBox.Location = new System.Drawing.Point(132, 130);
+            this.userNameTextBox.Location = new System.Drawing.Point(132, 162);
             this.userNameTextBox.Name = "userNameTextBox";
             this.userNameTextBox.Size = new System.Drawing.Size(240, 20);
             this.userNameTextBox.TabIndex = 17;
             // 
             // portTextBox
             // 
-            this.portTextBox.Location = new System.Drawing.Point(132, 79);
+            this.portTextBox.Location = new System.Drawing.Point(132, 111);
             this.portTextBox.Name = "portTextBox";
             this.portTextBox.Size = new System.Drawing.Size(100, 20);
             this.portTextBox.TabIndex = 14;
             // 
             // serverUrlTextBox
             // 
-            this.serverUrlTextBox.Location = new System.Drawing.Point(132, 55);
+            this.serverUrlTextBox.Location = new System.Drawing.Point(132, 87);
             this.serverUrlTextBox.Name = "serverUrlTextBox";
             this.serverUrlTextBox.Size = new System.Drawing.Size(240, 20);
             this.serverUrlTextBox.TabIndex = 13;
@@ -196,7 +198,7 @@
             // passwordLabel
             // 
             this.passwordLabel.AutoSize = true;
-            this.passwordLabel.Location = new System.Drawing.Point(11, 156);
+            this.passwordLabel.Location = new System.Drawing.Point(11, 188);
             this.passwordLabel.Name = "passwordLabel";
             this.passwordLabel.Size = new System.Drawing.Size(52, 13);
             this.passwordLabel.TabIndex = 20;
@@ -205,7 +207,7 @@
             // userNameLabel
             // 
             this.userNameLabel.AutoSize = true;
-            this.userNameLabel.Location = new System.Drawing.Point(12, 133);
+            this.userNameLabel.Location = new System.Drawing.Point(12, 165);
             this.userNameLabel.Name = "userNameLabel";
             this.userNameLabel.Size = new System.Drawing.Size(29, 13);
             this.userNameLabel.TabIndex = 21;
@@ -214,7 +216,7 @@
             // portLabel
             // 
             this.portLabel.AutoSize = true;
-            this.portLabel.Location = new System.Drawing.Point(12, 82);
+            this.portLabel.Location = new System.Drawing.Point(12, 114);
             this.portLabel.Name = "portLabel";
             this.portLabel.Size = new System.Drawing.Size(25, 13);
             this.portLabel.TabIndex = 22;
@@ -223,17 +225,36 @@
             // serverUrlLabel
             // 
             this.serverUrlLabel.AutoSize = true;
-            this.serverUrlLabel.Location = new System.Drawing.Point(12, 58);
+            this.serverUrlLabel.Location = new System.Drawing.Point(12, 90);
             this.serverUrlLabel.Name = "serverUrlLabel";
-            this.serverUrlLabel.Size = new System.Drawing.Size(81, 13);
+            this.serverUrlLabel.Size = new System.Drawing.Size(88, 13);
             this.serverUrlLabel.TabIndex = 23;
-            this.serverUrlLabel.Text = "POP3 server url";
+            this.serverUrlLabel.Text = "receive server url";
+            // 
+            // protocolTypeComboBox
+            // 
+            this.protocolTypeComboBox.FormattingEnabled = true;
+            this.protocolTypeComboBox.Location = new System.Drawing.Point(132, 58);
+            this.protocolTypeComboBox.Name = "protocolTypeComboBox";
+            this.protocolTypeComboBox.Size = new System.Drawing.Size(100, 21);
+            this.protocolTypeComboBox.TabIndex = 12;
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(12, 61);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(68, 13);
+            this.label1.TabIndex = 27;
+            this.label1.Text = "protocol type";
             // 
             // ConfigurationForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(391, 190);
+            this.ClientSize = new System.Drawing.Size(391, 215);
+            this.Controls.Add(this.protocolTypeComboBox);
+            this.Controls.Add(this.label1);
             this.Controls.Add(this.portHelpLabel);
             this.Controls.Add(this.accountNameHelpLabel);
             this.Controls.Add(this.authorisationComboBox);
@@ -279,5 +300,7 @@
         private System.Windows.Forms.Label userNameLabel;
         private System.Windows.Forms.Label portLabel;
         private System.Windows.Forms.Label serverUrlLabel;
+        private System.Windows.Forms.ComboBox protocolTypeComboBox;
+        private System.Windows.Forms.Label label1;
     }
 }

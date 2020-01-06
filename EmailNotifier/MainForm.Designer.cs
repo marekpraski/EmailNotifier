@@ -38,9 +38,9 @@
             this.showAllEmailsButton = new System.Windows.Forms.ToolStripButton();
             this.hideEmailsButton = new System.Windows.Forms.ToolStripButton();
             this.settingsButton = new System.Windows.Forms.ToolStripButton();
+            this.infoButton = new System.Windows.Forms.ToolStripButton();
             this.checkEmailsTimer = new System.Windows.Forms.Timer(this.components);
             this.toggleNotifyiconTimer = new System.Windows.Forms.Timer(this.components);
-            this.infoButton = new System.Windows.Forms.ToolStripButton();
             this.toolStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -133,14 +133,6 @@
             this.settingsButton.ToolTipText = "settings";
             this.settingsButton.Click += new System.EventHandler(this.SettingsButton_Click);
             // 
-            // checkEmailsTimer
-            // 
-            this.checkEmailsTimer.Tick += new System.EventHandler(this.CheckEmailsTimer_Tick);
-            // 
-            // toggleNotifyiconTimer
-            // 
-            this.toggleNotifyiconTimer.Tick += new System.EventHandler(this.ToggleNotifyiconTimer_Tick);
-            // 
             // infoButton
             // 
             this.infoButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
@@ -151,6 +143,14 @@
             this.infoButton.Text = "context-dependent help";
             this.infoButton.Click += new System.EventHandler(this.InfoButton_Click);
             // 
+            // checkEmailsTimer
+            // 
+            this.checkEmailsTimer.Tick += new System.EventHandler(this.CheckEmailsTimer_Tick);
+            // 
+            // toggleNotifyiconTimer
+            // 
+            this.toggleNotifyiconTimer.Tick += new System.EventHandler(this.ToggleNotifyiconTimer_Tick);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -158,6 +158,7 @@
             this.AutoScroll = true;
             this.ClientSize = new System.Drawing.Size(214, 42);
             this.Controls.Add(this.toolStrip1);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Name = "MainForm";
             this.Text = "Email Notifier";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);

@@ -474,11 +474,11 @@ namespace EmailNotifier
         {
             switch (emailConfiguration.receiveServer.serverType)
             {
+                case ServerType.POP:
+                    emailService = new EmailServicePop(emailConfiguration);
+                    break;
                 case ServerType.IMAP:
                     emailService = new EmailServiceImap(emailConfiguration);
-                    break;
-                case ServerType.POP3:
-                    emailService = new EmailServicePop(emailConfiguration);
                     break;
             }
         }
@@ -700,18 +700,21 @@ namespace EmailNotifier
                     //uruchamiam funkcję usuwającą nadliczbowe emaile z mailboxa
                     if (emailsDisplayed == EmailListType.allEmails && displayedEmailNumber > ProgramSettings.numberOfEmailsKept)
                         mailbox.trimEmailList(displayedEmailNumber, emailIndex);
-
+                    //
+                    //wysokość listy wiadomości
+                    //
                     messagePacketHeight += displayedEmailNumber * (listView.Font.Height + 5);        //liczę mnożąc liczbę wierszy przez wysokość jednego wiersza, dodając odstępy między wierszami
-
                     listView.Height = messagePacketHeight + 30;         //dodaję margines
                     int maxHeigth =  listView.Height > maxTabPageHeigth ? maxTabPageHeigth : listView.Height;
                     listView.Height = maxHeigth;
+                    //
+                    //wysokość okna zakładki
+                    //
                     tabPage.Text = mailboxName;
                     tabPage.Width = listView.Width + 3;
                     tabPage.Height = listView.Height + 20;              //dodaję margines
                     tabPage.Controls.Add(listView);
 
-                    tabPage.Height = tabPage.Height > maxTabPageHeigth ? maxTabPageHeigth : tabPage.Height;     //korekta wysokości tabPage, żeby nie przekraczała max
                     maxActualTabPageHeigth = maxActualTabPageHeigth > tabPage.Height ? maxActualTabPageHeigth : tabPage.Height;
 
                     emailDisplayTabControl.Controls.Add(tabPage);
