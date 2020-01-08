@@ -276,6 +276,10 @@ namespace EmailNotifier
                 {
                     throw new EmailServiceException("Email service error", e);
                 }
+                catch(Pop3CommandException e)
+                {
+                    throw new EmailServiceException("Email service error", e);
+                }
                 catch (MailKit.ServiceNotConnectedException e)
                 {
                     throw new EmailServiceException("Email service error", e);
