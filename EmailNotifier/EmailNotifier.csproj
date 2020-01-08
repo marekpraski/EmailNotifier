@@ -66,6 +66,7 @@
     <Compile Include="EmailAddress.cs" />
     <Compile Include="EmailAccountConfiguration.cs" />
     <Compile Include="EmailMessage.cs" />
+    <Compile Include="EmailService.cs" />
     <Compile Include="EmailServicePop.cs" />
     <Compile Include="EmailServiceException.cs" />
     <Compile Include="EmailServiceImap.cs" />
