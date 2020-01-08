@@ -142,6 +142,10 @@ namespace EmailNotifier
                 if (connectToServer())
                 {
                     int numberOfMessagesOnServer = emailClient.GetMessageCount();
+                    if (numberOfMessagesOnServer == 0)
+                    {
+                        throw new EmailServiceException("brak wiadomości na serwerze " + emailAccountConfiguration.receiveServer.url + " emailClient.IsConnected " + emailClient.IsConnected);
+                    }
 
                     int messageIndex = numberOfMessagesOnServer - 1;                //index ostatniego, tj najnowszego, maila na serwerze
                     EmailMessage emailMessage;
@@ -252,6 +256,10 @@ namespace EmailNotifier
                         emailsToDeleteDict.Add(emailId, emailsToDelete[emailsToDelete.Count-1]);
 
                     int numberOfMessagesOnServer = emailClient.GetMessageCount();
+                    if (numberOfMessagesOnServer == 0)
+                    {
+                        throw new EmailServiceException("brak wiadomości na serwerze " + emailAccountConfiguration.receiveServer.url + " emailClient.IsConnected " + emailClient.IsConnected);
+                    }
 
                     int messageIndex = numberOfMessagesOnServer - 1;                //index ostatniego, tj najnowszego, maila na serwerze
                     MimeMessage emailMessage;
