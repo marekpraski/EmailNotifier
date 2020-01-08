@@ -15,7 +15,7 @@ namespace EmailNotifier
     /// klasa odpowiedzialna za łączenie się z serwerem poczty email i ściąganie/wysyłanie emaili
     /// klasa używa bibliotekę MailKit
     /// </summary>
-    public class EmailServicePop : IEmailService
+    public class EmailServicePop : EmailService, IEmailService
     {
         private IEmailAccountConfiguration emailAccountConfiguration;
         private readonly LinkedList<IEmailMessage> emailsReceived = new LinkedList<IEmailMessage>();
@@ -80,7 +80,7 @@ namespace EmailNotifier
         /// <param name="numberOfMessagesToReceive"> liczba wiadomości do przeczytania z serwera</param>
         /// <returns></returns>
 
-        public LinkedList<IEmailMessage> ReceiveEmails(int numberOfMessagesToReceive)
+        public override LinkedList<IEmailMessage> ReceiveEmails(int numberOfMessagesToReceive)
         {
             getMessages(numberOfMessagesToReceive);
             if (connected) this.emailClient.Disconnect(true);
@@ -93,7 +93,7 @@ namespace EmailNotifier
         /// </summary>
         /// <param name="newestEmail"></param>
         /// <returns></returns>
-        public LinkedList<IEmailMessage> ReceiveEmails(IEmailMessage newestEmail)
+        public override LinkedList<IEmailMessage> ReceiveEmails(IEmailMessage newestEmail)
         {
             string newestEmailId = newestEmail.messageId;
             DateTime newestEmailDateTime = newestEmail.messageDateTime;
@@ -117,7 +117,7 @@ namespace EmailNotifier
                         throw new EmailServiceException("brak wiadomości na serwerze " + "emailClient.IsConnected " + emailClient.IsConnected);
                     }
 
-                    for (int i = numberOfMessagesOnServer - 1; i > 0 && i > (numberOfMessagesOnServer - 1 - numberOfMessagesToReceive); i--)
+                    for (int i = numberOfMessagesOnServer - 1; i >= 0 && i > (numberOfMessagesOnServer - 1 - numberOfMessagesToReceive); i--)
                     {
                         EmailMessage emailMessage = getOneMessage(i);
                         emailsReceived.AddLast(emailMessage);
@@ -206,7 +206,7 @@ namespace EmailNotifier
         /// <param name="lastEmail"></param>
         /// <param name="emailsToDelete"></param>
         /// <returns></returns>
-        public LinkedList<IEmailMessage> ReceiveAndDelete(IEmailMessage newestEmail, IList<IEmailMessage> emailsToDelete = null)
+        public override LinkedList<IEmailMessage> ReceiveAndDelete(IEmailMessage newestEmail, IList<IEmailMessage> emailsToDelete = null)
         {
             string newestEmailId = newestEmail.messageId;
             DateTime newestEmailDateTime = newestEmail.messageDateTime;
@@ -234,26 +234,10 @@ namespace EmailNotifier
                     //czyli została dodana do listy wiadomości do usunięcia
                     //a zanim została usunięta w pętli poniżej, więc pętlę muszę zatrzymać gdy dojdę do wiadomości na serwerze, która jest starsza niż
                     //najstarsza wiadomość przekazana do usunięcia
-                    Dictionary<string, IEmailMessage> emailsToDeleteDict = new Dictionary<string, IEmailMessage>();
-                    IEmailMessage oldestMessage = emailsToDelete[0];
-                    string emailId = "";
 
-                    for (int i = 1; i < emailsToDelete.Count - 1; i++)
-                    {
-                        oldestMessage = emailsToDelete[i].messageDateTime >= emailsToDelete[i + 1].messageDateTime ? emailsToDelete[i + 1] : emailsToDelete[i];
-                        emailId = emailsToDelete[i].messageId;
-                        emailsToDeleteDict.Add(emailId, emailsToDelete[i]);
-                    }
+                    IEmailMessage oldestMessage = getOldestEmail(emailsToDelete);
 
-                    //muszę do słownika dodać pierwszą, bo pętlę zaczynam od razu od drugiej
-                    emailId = emailsToDelete[0].messageId;
-                    emailsToDeleteDict.Add(emailId, emailsToDelete[0]);
-
-                    //muszę do słownika dodać ostatnią, bo pętla kończy się na przedostatniej
-                    //gdy lista zawiera tylko jeden email to pierwsza jest ostatnią, więc sprawdzam w słowniku, czy już taki wpis jest zanim dodam
-                    emailId = emailsToDelete[emailsToDelete.Count-1].messageId;
-                    if(!emailsToDeleteDict.ContainsKey(emailId))
-                        emailsToDeleteDict.Add(emailId, emailsToDelete[emailsToDelete.Count-1]);
+                    Dictionary<string, IEmailMessage> emailsToDeleteDict = constructEmailToDeleteDict(emailsToDelete);
 
                     int numberOfMessagesOnServer = emailClient.GetMessageCount();
                     if (numberOfMessagesOnServer == 0)
@@ -278,7 +262,7 @@ namespace EmailNotifier
                     //teoretycznie wiadomość może być usunięta na serwerze w inny sposób pomiędzy czasem kiedy została zaznaczona do usunięcia w programie 
                     //a zanim została usunięta w tej pętli, więc pętlę muszę zatrzymać gdy dojdę do wiadomości na serwerze, 
                     //która jest starsza od najstarszej przekazanej do skasowania
-                    while (emailsToDeleteDict.Count > 0 || emailMessage.Date > oldestMessage.messageDateTime);
+                    while (emailsToDeleteDict.Count > 0 && emailMessage.Date >= oldestMessage.messageDateTime && messageIndex > 0);
                 }
                 catch (MailKit.Net.Pop3.Pop3ProtocolException e)
                 {
@@ -296,7 +280,8 @@ namespace EmailNotifier
         }
 
 
-        public void DeleteEmails(IList<IEmailMessage> emailsToDelete)
+
+        public override void DeleteEmails(IList<IEmailMessage> emailsToDelete)
         {
             try
             {
@@ -323,7 +308,7 @@ namespace EmailNotifier
 
             #region Region - wysyłanie wiadomości
 
-            public void SendEmails(IList<IEmailMessage> emailMessages)
+            public override void SendEmails(IList<IEmailMessage> emailMessages)
         {
 
             //Be careful that the SmtpClient class is the one from Mailkit not the framework!
