@@ -91,7 +91,7 @@ namespace EmailNotifier
             authorisationComboBox.SelectedIndex = accountConfig.receiveServer.useAuthorisation == true ? 0 : 1;
 
             userNameTextBox.Text = accountConfig.username;
-            passwordTextBox.Text = accountConfig.password;
+            passwordTextBox.Text = ""; // accountConfig.password;
         }
 
 
@@ -117,14 +117,14 @@ namespace EmailNotifier
         private bool addOrUpdateAccountConfiguration()
         {
             string accountName = getAccountName();
-            if (accountConfigsDict.ContainsKey(accountName))
+            if (accountConfigsDict.ContainsKey(accountName))        //aktualizacja
             {
                 accountConfigsDict.TryGetValue(accountName, out accountConfig);
                 getAccountConfigurationFromGUI(accountConfig);
                 return true;
             }
 
-            if (accountName != "" && accountName != null)
+            if (accountName != "" && accountName != null)       //nowy
             {
                 accountConfig = new EmailAccountConfiguration();
                 getAccountConfigurationFromGUI(accountConfig);
@@ -150,7 +150,10 @@ namespace EmailNotifier
 
             emailConfig.receiveServer = receiveServer;
             emailConfig.username = userNameTextBox.Text;
-            emailConfig.password = passwordTextBox.Text;
+
+            //nie chcę wyświetlać hasła a z drugiej strony nie chcę nadpisywać zapisanego hasła pustym stringiem
+            if(passwordTextBox.Text != "")
+                emailConfig.password = passwordTextBox.Text;
         }
 
 
