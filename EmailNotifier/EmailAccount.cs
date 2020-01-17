@@ -111,6 +111,22 @@ namespace EmailNotifier
             }
         }
 
+        public override string ToString()
+        {
+            string emailSummaryTxt = this.name + "\r\n====================================================================\r\n";
+            foreach(EmailMessage email in allEmailsList)
+            {
+                if(!email.deletedFromServer)
+                    emailSummaryTxt += email.messageDateTime + "  " + email.FromAddress + "  " + email.Subject + "\r\n";
+            }
+            return emailSummaryTxt + "\r\n\r\n";
+        }
 
+        internal void clearData()
+        {
+            allEmailsList.Clear();
+            newEmailsList.Clear();
+            hasNewEmails = false;
+        }
     }
 }

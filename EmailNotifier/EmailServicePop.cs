@@ -195,7 +195,7 @@ namespace EmailNotifier
                 Subject = message.Subject,
                 messageId = message.MessageId,
                 FromAddress = message.From.ToString(),
-                messageDateTime = message.Date.UtcDateTime,
+                messageDateTime = message.Date.LocalDateTime,
                 Content = message.TextBody
             };
             if (message.Sender != null)

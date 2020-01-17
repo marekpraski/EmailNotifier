@@ -301,6 +301,31 @@ namespace EmailNotifier
             emailsDisplayed = EmailListType.none;
         }
 
+        private void SaveToFileButon_Click(object sender, EventArgs e)
+        {
+            string textToPrint = DateTime.Now.ToString() + "\r\n\r\n";
+            foreach (EmailAccount account in mailBoxesDict.Values)
+            {
+                textToPrint += account.ToString();
+            }
+            saveTextToFile(textToPrint, ProgramSettings.fileSavePath + ProgramSettings.emailTextSummaryFileName);
+            MyMessageBox.displayAndClose("saved",1);
+        }
+
+
+        private void ClearEmailsButton_Click(object sender, EventArgs e)
+        {
+            if (MyMessageBox.display("Deleting all emails from the data file. Account setting will not be changed. Proceed?", MyMessageBoxType.YesNo) == MyMessageBoxResults.Yes)
+            {
+                foreach (EmailAccount account in mailBoxesDict.Values)
+                {
+                    account.clearData();
+                }
+            }
+            saveDataToFile();
+        }
+
+
 
         private void SettingsButton_Click(object sender, EventArgs e)
         {
@@ -361,11 +386,7 @@ namespace EmailNotifier
 
 
 
-        /// <summary>
-        /// uruchamia funkcję zamykania okna wyświetlania emaili, jeżeli jest ono otwarte, w celu zapisania ewentualnych zmian
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+        // uruchamia funkcję zamykania okna wyświetlania emaili, jeżeli jest ono otwarte, w celu zapisania ewentualnych zmian
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (MyMessageBox.display("This will exit the application, monitoring of email accounts will stop. Proceed?", MyMessageBoxType.YesNo) == MyMessageBoxResults.Yes)
@@ -1122,5 +1143,15 @@ namespace EmailNotifier
 
         #endregion
 
+
+        private void saveTextToFile(string text, string fileName)
+        {
+            using (FileStream stream = new FileStream(fileName, FileMode.Append))
+            {
+                StreamWriter writer = new StreamWriter(stream);
+                writer.Write(text);
+                writer.Close();
+            }
+        }
     }
 }

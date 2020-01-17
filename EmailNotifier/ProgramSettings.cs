@@ -10,6 +10,7 @@ namespace EmailNotifier
     public static class ProgramSettings
     {
         public static string emailDataFileName = "emailNotifierData.bin";
+        public static string emailTextSummaryFileName = "emailSummary.txt";
 
 #if DEBUG
         public static string fileSavePath = @"C:\testDesktop\emNotTest\";

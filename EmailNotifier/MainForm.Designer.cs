@@ -42,6 +42,8 @@
             this.checkEmailsTimer = new System.Windows.Forms.Timer(this.components);
             this.toggleNotifyiconTimer = new System.Windows.Forms.Timer(this.components);
             this.statusLabel = new System.Windows.Forms.Label();
+            this.saveToFileButon = new System.Windows.Forms.ToolStripButton();
+            this.clearEmailsButton = new System.Windows.Forms.ToolStripButton();
             this.toolStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -61,11 +63,13 @@
             this.showNewEmailsButton,
             this.showAllEmailsButton,
             this.hideEmailsButton,
-            this.settingsButton,
-            this.infoButton});
+            this.saveToFileButon,
+            this.clearEmailsButton,
+            this.infoButton,
+            this.settingsButton});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(214, 25);
+            this.toolStrip1.Size = new System.Drawing.Size(238, 25);
             this.toolStrip1.TabIndex = 2;
             this.toolStrip1.Text = "toolStrip1";
             // 
@@ -162,12 +166,32 @@
             this.statusLabel.Text = "status";
             this.statusLabel.Visible = false;
             // 
+            // saveToFileButon
+            // 
+            this.saveToFileButon.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.saveToFileButon.Image = ((System.Drawing.Image)(resources.GetObject("saveToFileButon.Image")));
+            this.saveToFileButon.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.saveToFileButon.Name = "saveToFileButon";
+            this.saveToFileButon.Size = new System.Drawing.Size(23, 22);
+            this.saveToFileButon.Text = "save all email headers to file";
+            this.saveToFileButon.Click += new System.EventHandler(this.SaveToFileButon_Click);
+            // 
+            // clearEmailsButton
+            // 
+            this.clearEmailsButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.clearEmailsButton.Image = ((System.Drawing.Image)(resources.GetObject("clearEmailsButton.Image")));
+            this.clearEmailsButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.clearEmailsButton.Name = "clearEmailsButton";
+            this.clearEmailsButton.Size = new System.Drawing.Size(23, 22);
+            this.clearEmailsButton.Text = "delete all emails from data file";
+            this.clearEmailsButton.Click += new System.EventHandler(this.ClearEmailsButton_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoScroll = true;
-            this.ClientSize = new System.Drawing.Size(214, 45);
+            this.ClientSize = new System.Drawing.Size(238, 45);
             this.Controls.Add(this.statusLabel);
             this.Controls.Add(this.toolStrip1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
@@ -195,6 +219,8 @@
         private System.Windows.Forms.ToolStripButton settingsButton;
         private System.Windows.Forms.ToolStripButton infoButton;
         private System.Windows.Forms.Label statusLabel;
+        private System.Windows.Forms.ToolStripButton saveToFileButon;
+        private System.Windows.Forms.ToolStripButton clearEmailsButton;
     }
 }
 
