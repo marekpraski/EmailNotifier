@@ -117,7 +117,7 @@ namespace EmailNotifier
             foreach(EmailMessage email in allEmailsList)
             {
                 if(!email.deletedFromServer)
-                    emailSummaryTxt += email.messageDateTime + "  " + email.FromAddress + "  " + email.Subject + "\r\n";
+                    emailSummaryTxt += email.messageDateTime + "  nr on server  " + email.nrOnServer.ToString() + "  " + email.FromAddress + "  " + email.Subject + "\r\n";
             }
             return emailSummaryTxt + "\r\n\r\n";
         }

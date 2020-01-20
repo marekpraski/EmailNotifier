@@ -22,5 +22,6 @@ namespace EmailNotifier
         public DateTime messageDateTime { get; set; }
         public bool markedForDeletion { get; set; }
         public bool deletedFromServer { get ; set; }
+        public int nrOnServer { get; set; }
     }
 }

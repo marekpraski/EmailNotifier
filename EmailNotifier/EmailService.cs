@@ -65,32 +65,5 @@ namespace EmailNotifier
 
             return emailsToDeleteDict;
         }
-
-
-        protected void printLog(string serverUrl, string log)
-        {
-            string dir = serverUrl.Replace(".", "_");
-            Directory.CreateDirectory(dir);
-
-            string timeStamp = DateTime.Now.ToString().Replace("-","_").Replace(" ","_").Replace(":","_");
-            string fileName = dir + "" + @"\detailedLog_" + timeStamp + ".txt";
-            using (FileStream stream = new FileStream(fileName, FileMode.Append))
-            {
-                StreamWriter writer = new StreamWriter(stream);
-                writer.Write(log);
-                writer.Close();
-            }
-        }
-
-        protected void appendLog(DateTime newestEmailDateTime, string newestEmailId, EmailMessage emailMessage, bool compareId, bool compareDateTime,bool addedToDB, ref string log)
-        {
-            DateTime messDate = emailMessage.messageDateTime;
-            string messId = emailMessage.messageId;
-            log += "newestEmailDateTime  " + newestEmailDateTime.ToString() + "   newestEmailId  " + newestEmailId + "\r\n" +
-                "emailMessage.messageDateTime  " + emailMessage.messageDateTime.ToString() + "  emailMessage.messageId  " + emailMessage.messageId + "\r\n" +
-                "  compareId  " + compareId + "   compareDateTime   " + compareDateTime + "   addedToDB   "+addedToDB+ "\r\n" +
-                emailMessage.Subject + "\r\n\r\n";
-
-        }
     }
 }

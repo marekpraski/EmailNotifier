@@ -37,13 +37,13 @@
             this.showNewEmailsButton = new System.Windows.Forms.ToolStripButton();
             this.showAllEmailsButton = new System.Windows.Forms.ToolStripButton();
             this.hideEmailsButton = new System.Windows.Forms.ToolStripButton();
-            this.settingsButton = new System.Windows.Forms.ToolStripButton();
+            this.saveToFileButon = new System.Windows.Forms.ToolStripButton();
+            this.clearEmailsButton = new System.Windows.Forms.ToolStripButton();
             this.infoButton = new System.Windows.Forms.ToolStripButton();
+            this.settingsButton = new System.Windows.Forms.ToolStripButton();
             this.checkEmailsTimer = new System.Windows.Forms.Timer(this.components);
             this.toggleNotifyiconTimer = new System.Windows.Forms.Timer(this.components);
             this.statusLabel = new System.Windows.Forms.Label();
-            this.saveToFileButon = new System.Windows.Forms.ToolStripButton();
-            this.clearEmailsButton = new System.Windows.Forms.ToolStripButton();
             this.toolStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -69,7 +69,7 @@
             this.settingsButton});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(238, 25);
+            this.toolStrip1.Size = new System.Drawing.Size(294, 25);
             this.toolStrip1.TabIndex = 2;
             this.toolStrip1.Text = "toolStrip1";
             // 
@@ -127,45 +127,6 @@
             this.hideEmailsButton.Text = "hide emails";
             this.hideEmailsButton.Click += new System.EventHandler(this.HideEmailsButton_Click);
             // 
-            // settingsButton
-            // 
-            this.settingsButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.settingsButton.Image = ((System.Drawing.Image)(resources.GetObject("settingsButton.Image")));
-            this.settingsButton.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.settingsButton.Name = "settingsButton";
-            this.settingsButton.Size = new System.Drawing.Size(23, 22);
-            this.settingsButton.Text = "toolStripButton1";
-            this.settingsButton.ToolTipText = "settings";
-            this.settingsButton.Click += new System.EventHandler(this.SettingsButton_Click);
-            // 
-            // infoButton
-            // 
-            this.infoButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.infoButton.Image = ((System.Drawing.Image)(resources.GetObject("infoButton.Image")));
-            this.infoButton.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.infoButton.Name = "infoButton";
-            this.infoButton.Size = new System.Drawing.Size(23, 22);
-            this.infoButton.Text = "context-dependent help";
-            this.infoButton.Click += new System.EventHandler(this.InfoButton_Click);
-            // 
-            // checkEmailsTimer
-            // 
-            this.checkEmailsTimer.Tick += new System.EventHandler(this.CheckEmailsTimer_Tick);
-            // 
-            // toggleNotifyiconTimer
-            // 
-            this.toggleNotifyiconTimer.Tick += new System.EventHandler(this.ToggleNotifyiconTimer_Tick);
-            // 
-            // statusLabel
-            // 
-            this.statusLabel.AutoSize = true;
-            this.statusLabel.Location = new System.Drawing.Point(38, 30);
-            this.statusLabel.Name = "statusLabel";
-            this.statusLabel.Size = new System.Drawing.Size(35, 13);
-            this.statusLabel.TabIndex = 3;
-            this.statusLabel.Text = "status";
-            this.statusLabel.Visible = false;
-            // 
             // saveToFileButon
             // 
             this.saveToFileButon.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
@@ -186,12 +147,51 @@
             this.clearEmailsButton.Text = "delete all emails from data file";
             this.clearEmailsButton.Click += new System.EventHandler(this.ClearEmailsButton_Click);
             // 
+            // infoButton
+            // 
+            this.infoButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.infoButton.Image = ((System.Drawing.Image)(resources.GetObject("infoButton.Image")));
+            this.infoButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.infoButton.Name = "infoButton";
+            this.infoButton.Size = new System.Drawing.Size(23, 22);
+            this.infoButton.Text = "context-dependent help";
+            this.infoButton.Click += new System.EventHandler(this.InfoButton_Click);
+            // 
+            // settingsButton
+            // 
+            this.settingsButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.settingsButton.Image = ((System.Drawing.Image)(resources.GetObject("settingsButton.Image")));
+            this.settingsButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.settingsButton.Name = "settingsButton";
+            this.settingsButton.Size = new System.Drawing.Size(23, 22);
+            this.settingsButton.Text = "toolStripButton1";
+            this.settingsButton.ToolTipText = "settings";
+            this.settingsButton.Click += new System.EventHandler(this.SettingsButton_Click);
+            // 
+            // checkEmailsTimer
+            // 
+            this.checkEmailsTimer.Tick += new System.EventHandler(this.CheckEmailsTimer_Tick);
+            // 
+            // toggleNotifyiconTimer
+            // 
+            this.toggleNotifyiconTimer.Tick += new System.EventHandler(this.ToggleNotifyiconTimer_Tick);
+            // 
+            // statusLabel
+            // 
+            this.statusLabel.AutoSize = true;
+            this.statusLabel.Location = new System.Drawing.Point(38, 30);
+            this.statusLabel.Name = "statusLabel";
+            this.statusLabel.Size = new System.Drawing.Size(35, 13);
+            this.statusLabel.TabIndex = 3;
+            this.statusLabel.Text = "status";
+            this.statusLabel.Visible = false;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoScroll = true;
-            this.ClientSize = new System.Drawing.Size(238, 45);
+            this.ClientSize = new System.Drawing.Size(294, 45);
             this.Controls.Add(this.statusLabel);
             this.Controls.Add(this.toolStrip1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;

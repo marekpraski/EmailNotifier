@@ -10,6 +10,7 @@ using System.Net.NetworkInformation;
 using System.Drawing;
 using System.Windows.Forms.VisualStyles;
 using System.Diagnostics;
+using System.Linq;
 
 namespace EmailNotifier
 {
@@ -354,6 +355,10 @@ namespace EmailNotifier
             if (e.KeyCode == Keys.Delete)
             {
                 markEmailsForDeletion(sender, e);
+            }
+            if(e.KeyCode == Keys.Down)
+            {
+                this.WindowState = FormWindowState.Minimized;
             }
         }
 
@@ -800,7 +805,7 @@ namespace EmailNotifier
         {
             infoLabel = new Label();
             infoLabel.AutoSize = true;
-            infoLabel.Location = new System.Drawing.Point(200, 5);
+            infoLabel.Location = new System.Drawing.Point(300, 5);
             infoLabel.Size = new System.Drawing.Size(35, 13);
             infoLabel.BackColor = System.Drawing.Color.Transparent;
             infoLabel.Font = new System.Drawing.Font("Arial", 15);
@@ -1052,14 +1057,19 @@ namespace EmailNotifier
             //dopiero po wychwyceniu zaznaczonych emaili zamykam okno
             emailDisplayTabControl.Dispose();
             infoLabel.Dispose();
-            this.Width = 230;
-            this.Height = 80;
+            setMainFormStartSettings();
+        }
+
+        private void setMainFormStartSettings()
+        {
+            this.Width = 310;
+            this.Height = 83;
             hideEmailsButton.Enabled = false;
             showNewEmailsButton.Enabled = true;
             showAllEmailsButton.Enabled = true;
         }
 
- 
+
 
         #endregion
 
@@ -1151,6 +1161,7 @@ namespace EmailNotifier
                 StreamWriter writer = new StreamWriter(stream);
                 writer.Write(text);
                 writer.Close();
+                int i = 1000;
             }
         }
     }

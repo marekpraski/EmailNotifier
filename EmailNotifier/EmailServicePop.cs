@@ -140,7 +140,6 @@ namespace EmailNotifier
         {
             try
             {
-                string log = "===================  " + emailAccountConfiguration.receiveServer.url + "    ========================\r\n";
                 if (connectToServer())
                 {
                     int numberOfMessagesOnServer = emailClient.GetMessageCount();
@@ -160,20 +159,17 @@ namespace EmailNotifier
                         //dlatego sprawdzam też po dacie, wczytuję tylko wiadomości młodsze od ostatniej, którą mam w bazie
                         bool compareId = emailMessage.messageId != newestEmailId;
                         bool compareDateTime = emailMessage.messageDateTime >= newestEmailDateTime;
-                        bool addedToDB = false;
+
                         if (emailMessage.messageId != newestEmailId && emailMessage.messageDateTime >= newestEmailDateTime)
                         {
                             this.emailsReceived.AddLast(emailMessage);
-                            addedToDB = true;
                         }
-                        appendLog(newestEmailDateTime, newestEmailId, emailMessage, compareId, compareDateTime, addedToDB, ref log); ;
                         messageIndex--;
                     }
                     //wiadomości czytam od najnowszej, aż dojdę do tej, którą już mam w bazie. Ale ...
                     //wiadomość może być usunięta na serwerze zanim została zaczytana w programie, więc wiadomości nie będzie wtedy w bazie programu
                     while (emailMessage.messageDateTime > newestEmailDateTime);
                 }
-                printLog(emailAccountConfiguration.receiveServer.url,log);
                 
             }
             catch (MailKit.Net.Pop3.Pop3ProtocolException e)
@@ -196,7 +192,8 @@ namespace EmailNotifier
                 messageId = message.MessageId,
                 FromAddress = message.From.ToString(),
                 messageDateTime = message.Date.LocalDateTime,
-                Content = message.TextBody
+                Content = message.TextBody,
+                nrOnServer = messageIndex
             };
             if (message.Sender != null)
                 emailMessage.SenderAddress = new EmailAddress(message.Sender.Name, message.Sender.Address);
