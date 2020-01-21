@@ -161,5 +161,10 @@ namespace EmailNotifier
         {
             MyMessageBox.display("aaa");
         }
+
+        private void ListView1_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+
+        }
     }
 }

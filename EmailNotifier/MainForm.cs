@@ -344,9 +344,11 @@ namespace EmailNotifier
         }
 
 
-        private void ListView_SelectedIndexChanged(object sender, EventArgs e)
+        private void ListView_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            displayEmailBody(sender);
+            ListView listView = sender as ListView;
+            if(listView.SelectedItems.Count == 1)
+                displayEmailBody(listView);
         }
 
 
@@ -859,7 +861,7 @@ namespace EmailNotifier
             listView.DrawSubItem += new System.Windows.Forms.DrawListViewSubItemEventHandler(listView_DrawSubItem);
 
             //do wyświetlania treści wiadomości po zaznaczeniu wiadomości na liście
-            listView.SelectedIndexChanged += new System.EventHandler(ListView_SelectedIndexChanged);
+            listView.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(ListView_MouseDoubleClick);
 
             //do zaznaczania wiadomości do skasowania
             listView.KeyDown += new System.Windows.Forms.KeyEventHandler(ListView_KeyDown);
@@ -881,18 +883,13 @@ namespace EmailNotifier
 
 
         // otwieranie okna z treścią wiadomości
-        private void displayEmailBody(object sender)
+        private void displayEmailBody(ListView listView)
         {
-            ListView listView = sender as ListView;
+            ListViewItem selected = listView.SelectedItems[0];
+            IEmailMessage selectedMessage = selected.Tag as IEmailMessage;
 
-            if (listView.SelectedItems.Count > 0)
-            {
-                ListViewItem selected = listView.SelectedItems[0];
-                IEmailMessage selectedMessage = selected.Tag as IEmailMessage;
-
-                string msgText = selectedMessage.Content != null ? selectedMessage.Content : "the email is empty";
-                MyMessageBox.display(msgText);
-            }
+            string msgText = selectedMessage.Content != null ? selectedMessage.Content : "the email is empty";
+            MyMessageBox.display(msgText);
         }
 
 

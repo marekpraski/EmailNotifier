@@ -59,6 +59,7 @@ namespace EmailNotifier
             this.listView1.KeyDown += new System.Windows.Forms.KeyEventHandler(this.ListView1_KeyDown);
             this.listView1.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.ListView1_KeyPress);
             this.listView1.MouseClick += new System.Windows.Forms.MouseEventHandler(this.ListView1_MouseClick);
+            this.listView1.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.ListView1_MouseDoubleClick);
             this.listView1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.ListView1_MouseDown);
             // 
             // columnHeader1
