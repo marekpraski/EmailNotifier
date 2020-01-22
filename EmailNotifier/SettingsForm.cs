@@ -5,8 +5,7 @@ namespace EmailNotifier
 {
     public partial class SettingsForm : Form
     {
-        public delegate void saveSettingsEventHandler(object sender, SettingsArgs args);
-        public event saveSettingsEventHandler saveSettingsEvent;
+        public event EventHandler<SettingsArgs> saveSettingsEvent;
 
         public int checkEmailTimespan { get; set; }           //minut 
         public int notificationFrequency { get; set; }      //sekund

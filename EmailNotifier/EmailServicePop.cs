@@ -19,7 +19,6 @@ namespace EmailNotifier
     public class EmailServicePop : EmailService, IEmailService
     {
         private IEmailAccountConfiguration emailAccountConfiguration;
-        private readonly LinkedList<IEmailMessage> emailsReceived = new LinkedList<IEmailMessage>();
 
         private Pop3Client emailClient;
         private bool connected = false;
@@ -96,9 +95,7 @@ namespace EmailNotifier
         /// <returns></returns>
         public override LinkedList<IEmailMessage> ReceiveEmails(IEmailMessage newestEmail)
         {
-            string newestEmailId = newestEmail.messageId;
-            DateTime newestEmailDateTime = newestEmail.messageDateTime;
-            getMessages(newestEmailId, newestEmailDateTime);
+            getMessages(newestEmail);
             if (connected) this.emailClient.Disconnect(true);
 
             return this.emailsReceived;
@@ -120,7 +117,7 @@ namespace EmailNotifier
 
                     for (int i = numberOfMessagesOnServer - 1; i >= 0 && i > (numberOfMessagesOnServer - 1 - numberOfMessagesToReceive); i--)
                     {
-                        EmailMessage emailMessage = getOneMessage(i);
+                        IEmailMessage emailMessage = getOneMessage(i);
                         emailsReceived.AddLast(emailMessage);
                     }
                 }
@@ -136,7 +133,7 @@ namespace EmailNotifier
         }
 
  
-        private void getMessages(string newestEmailId, DateTime newestEmailDateTime)
+        private void getMessages(IEmailMessage benchmarkEmail)
         {
             try
             {
@@ -149,28 +146,19 @@ namespace EmailNotifier
                     }
 
                     int messageIndex = numberOfMessagesOnServer - 1;                //index ostatniego, tj najnowszego, maila na serwerze
-                    EmailMessage emailMessage;
+                    IEmailMessage emailMessage;
 
                     do
                     {
                         emailMessage = getOneMessage(messageIndex);
-
-                        //sprawdzenie po ID wiadomości działa tylko wtedy, gdy w międzyczasie nie usunąłem z serwera wiadomości nowszych, niż ostatnio wczytana
-                        //dlatego sprawdzam też po dacie, wczytuję tylko wiadomości młodsze od ostatniej, którą mam w bazie
-                        bool compareId = emailMessage.messageId != newestEmailId;
-                        bool compareDateTime = emailMessage.messageDateTime >= newestEmailDateTime;
-
-                        if (emailMessage.messageId != newestEmailId && emailMessage.messageDateTime >= newestEmailDateTime)
-                        {
-                            this.emailsReceived.AddLast(emailMessage);
-                        }
+                        tryAddToNewEmailsList(benchmarkEmail, emailMessage);
                         messageIndex--;
                     }
                     //wiadomości czytam od najnowszej, aż dojdę do tej, którą już mam w bazie. Ale ...
                     //wiadomość może być usunięta na serwerze zanim została zaczytana w programie, więc wiadomości nie będzie wtedy w bazie programu
-                    while (emailMessage.messageDateTime > newestEmailDateTime);
+                    while (conditionContinueGettingEmails(benchmarkEmail, emailMessage));
                 }
-                
+
             }
             catch (MailKit.Net.Pop3.Pop3ProtocolException e)
             {
@@ -183,23 +171,16 @@ namespace EmailNotifier
         }
 
 
-        private EmailMessage getOneMessage(int messageIndex)
+        protected override IEmailMessage getOneMessage(int messageIndex)
         {
             var message = this.emailClient.GetMessage(messageIndex);
-            EmailMessage emailMessage = new EmailMessage()
-            {
-                Subject = message.Subject,
-                messageId = message.MessageId,
-                FromAddress = message.From.ToString(),
-                messageDateTime = message.Date.LocalDateTime,
-                Content = message.TextBody,
-                nrOnServer = messageIndex
-            };
+            IEmailMessage emailMessage = createOneEmailMessage(messageIndex, message);
             if (message.Sender != null)
                 emailMessage.SenderAddress = new EmailAddress(message.Sender.Name, message.Sender.Address);
 
             return emailMessage;
         }
+
 
 
         #endregion
@@ -214,9 +195,7 @@ namespace EmailNotifier
         /// <returns></returns>
         public override LinkedList<IEmailMessage> ReceiveAndDelete(IEmailMessage newestEmail, IList<IEmailMessage> emailsToDelete = null)
         {
-            string newestEmailId = newestEmail.messageId;
-            DateTime newestEmailDateTime = newestEmail.messageDateTime;
-            getMessages(newestEmailId, newestEmailDateTime);
+            getMessages(newestEmail);
             deleteEmails(emailsToDelete);
 
             if (connected) this.emailClient.Disconnect(true);
@@ -268,7 +247,7 @@ namespace EmailNotifier
                     //teoretycznie wiadomość może być usunięta na serwerze w inny sposób pomiędzy czasem kiedy została zaznaczona do usunięcia w programie 
                     //a zanim została usunięta w tej pętli, więc pętlę muszę zatrzymać gdy dojdę do wiadomości na serwerze, 
                     //która jest starsza od najstarszej przekazanej do skasowania
-                    while (emailsToDeleteDict.Count > 0 && emailMessage.Date >= oldestMessage.messageDateTime && messageIndex > 0);
+                    while (emailsToDeleteDict.Count > 0 && emailMessage.Date >= oldestMessage.DateTime && messageIndex > 0);
                 }
                 catch (MailKit.Net.Pop3.Pop3ProtocolException e)
                 {

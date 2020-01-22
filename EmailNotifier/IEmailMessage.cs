@@ -11,8 +11,8 @@ namespace EmailNotifier
 
         string FromAddress { get; set; }
         string Subject { get; set; }
-        string messageId { get; set; }
-        DateTime messageDateTime { get; set; }
+        string Id { get; set; }
+        DateTime DateTime { get; set; }
         EmailAddress SenderAddress { get; set; }
         string Content { get; set; }
         bool markedForDeletion { get; set; }

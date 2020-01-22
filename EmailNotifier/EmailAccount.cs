@@ -117,7 +117,7 @@ namespace EmailNotifier
             foreach(EmailMessage email in allEmailsList)
             {
                 if(!email.deletedFromServer)
-                    emailSummaryTxt += email.messageDateTime + "  nr on server  " + email.nrOnServer.ToString() + "  " + email.FromAddress + "  " + email.Subject + "\r\n";
+                    emailSummaryTxt += email.DateTime + "  nr on server  " + email.nrOnServer.ToString() + "  " + email.FromAddress + "  " + email.Subject + "\r\n";
             }
             return emailSummaryTxt + "\r\n\r\n";
         }
@@ -127,6 +127,14 @@ namespace EmailNotifier
             allEmailsList.Clear();
             newEmailsList.Clear();
             hasNewEmails = false;
+        }
+
+        public void deleteLeadingEmails(int numberOfEmails)
+        {
+            for (int i = 0; i < numberOfEmails; i++)
+            {
+                allEmailsList.RemoveFirst();
+            }
         }
     }
 }

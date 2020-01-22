@@ -158,9 +158,6 @@ namespace EmailNotifier
 
 
 
-
-
-
         private void populateAccountNamesCombo()
         {
             accountNameComboBox.DataSource = accountConfigsDict.Keys.ToList();

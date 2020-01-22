@@ -87,34 +87,26 @@ namespace EmailNotifier
         }
 
 
-        /// <summary>
-        /// tworzy katalog na plik z danymni, jeżeli go jeszcze nie ma
-        /// </summary>
+
         private void assertDataDirectoryExists()
         {
             Directory.CreateDirectory(ProgramSettings.fileSavePath);
         }
 
 
-        /// <summary>
-        /// jeżeli istnieje plik z danymi, czyta konfigurację kont z pliku
-        /// </summary>
+        // jeżeli istnieje plik z danymi, czyta konfigurację kont z pliku
         private void setupMailboxes()
         {
             string emailDataFile = ProgramSettings.fileSavePath + ProgramSettings.emailDataFileName;
             if (File.Exists(emailDataFile))
             {                
-                readDataFromFile(emailDataFile);                              
+                readDataFromFile(emailDataFile);
             }
         }
 
 
 
-
-        /// <summary>
-        /// czyta dane kont pocztowych z pliku
-        /// </summary>
-        /// <param name="fileName"></param>
+        // czyta dane kont pocztowych z pliku
         private void readDataFromFile(string fileName)
         {
             DataBundle dataBundle;
@@ -149,6 +141,7 @@ namespace EmailNotifier
                 ProgramSettings.checkEmailTimespan = dataBundle.checkEmailTimespan;
                 ProgramSettings.numberOfEmailsKept = dataBundle.numberOfEmailsKept;
                 ProgramSettings.showNotificationTimespan = dataBundle.showNotificationTimespan;
+                //ProgramSettings.numberOfEmailsAtSetup = dataBundle.
 
             }
             catch (System.IO.InvalidDataException exc)
@@ -164,9 +157,7 @@ namespace EmailNotifier
 
 
 
-        /// <summary>
-        /// uruchamia okno konfiguracji kont mailowych i przypisuje metodę do zdarzenia zapisu w tym oknie
-        /// </summary>
+        // uruchamia okno konfiguracji kont mailowych i przypisuje metodę do zdarzenia zapisu w tym oknie
         private void configureEmailAccounts()
         {
             ConfigurationForm configForm = new ConfigurationForm(generateAccountConfigurationsDict(mailBoxesDict));    //przesyłam słownik konfiguracji kont, żeby można było anulować zmiany
@@ -196,11 +187,7 @@ namespace EmailNotifier
         #region Region - interakcja użytkownika w głównym pasku i oknie programu
 
 
-        /// <summary>
-        /// minimalizacja okna powoduje pojawienie się ikony na pasku oraz uruchomienie timera odpowiedzialnego za automatyczne sprawdzanie poczty
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+        // minimalizacja okna powoduje pojawienie się ikony na pasku oraz uruchomienie timera odpowiedzialnego za automatyczne sprawdzanie poczty
         private void MainForm_Resize(object sender, EventArgs e)
         { 
             if (this.WindowState == FormWindowState.Minimized)
@@ -222,11 +209,8 @@ namespace EmailNotifier
         }
 
 
-        /// <summary>
-        /// powrót głównego okna do normalnej postaci oraz zatrzymanie timera odpowiedzialnego za automatyczne sprawdzanie poczty
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+
+        // powrót głównego okna do normalnej postaci oraz zatrzymanie timera odpowiedzialnego za automatyczne sprawdzanie poczty
         private void NotifyIcon_Click(object sender, EventArgs e)
         {
             Show();
@@ -253,11 +237,8 @@ namespace EmailNotifier
         }
 
 
-        /// <summary>
-        /// ręczne sprawdzanie poczty
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+
+        // ręczne sprawdzanie poczty
         private void checkForEmailsButton_Click(object sender, EventArgs e)
         {
             try
@@ -727,10 +708,10 @@ namespace EmailNotifier
                     {
                         if (!emailMessage.deletedFromServer)        //nagłówki emaili skasowanych z serwera pozostawiam na liście, ale nie chcę ich wyświetlać
                         {
-                            string[] emailDataRow = new string[] { emailMessage.messageDateTime.ToString(), emailMessage.FromAddress, emailMessage.Subject };
+                            string[] emailDataRow = new string[] { emailMessage.DateTime.ToString(), emailMessage.FromAddress, emailMessage.Subject };
 
                             ListViewItem listRow = new ListViewItem(emailDataRow);
-                            listRow.Name = emailMessage.messageId;
+                            listRow.Name = emailMessage.Id;
                             listRow.Tag = emailMessage;
                             listRow.ImageIndex = emailMessage.markedForDeletion ? 0 : -1;
                             listView.Items.Add(listRow);
@@ -1086,9 +1067,8 @@ namespace EmailNotifier
         }
 
 
-        /// <summary>
+
         /// usuwa maile zaznaczone przez użytkownika ze słownika nowych maili
-        /// </summary>
         private void updateNewEmailsDict()
         {
             EmailAccount account = null;
@@ -1106,10 +1086,6 @@ namespace EmailNotifier
 
 
 
-        /// <summary>
-        /// zapisuje dane (listę kont pocztowych) do skompresowanego pliku binarnego
-        /// </summary>
-        /// <param name="fileName"></param>
         private void saveDataToFile(string fileName)
         {
             DataBundle dataBundle = new DataBundle(mailBoxesDict, emailsToBeDeletedDict)
@@ -1161,5 +1137,6 @@ namespace EmailNotifier
                 int i = 1000;
             }
         }
+
     }
 }
