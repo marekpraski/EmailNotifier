@@ -14,10 +14,9 @@ namespace EmailNotifier
 
         public LinkedList<IEmailMessage> newEmailsList { get; set; }
         public IEmailAccountConfiguration configuration { get; set; }
-        public bool hasNewEmails
+        public bool hasNewEmails 
         {
             get { return newEmailsList.Count > 0; }
-            set { }
         }
 
         public EmailAccount()
@@ -33,7 +32,6 @@ namespace EmailNotifier
             {
                 allEmailsList.AddFirst(email);
                 newEmailsList.AddFirst(email);
-                hasNewEmails = true;
             }
         }
 
@@ -123,7 +121,6 @@ namespace EmailNotifier
             allEmailsList.Clear();
             newEmailsList.Clear();
             allEmailsDict.Clear();
-            hasNewEmails = false;
         }
 
         public void deleteLeadingEmails(int numberOfEmails)

@@ -27,6 +27,7 @@ namespace EmailNotifier
         {
             this.emailAccountConfiguration = emailAccountConfiguration;
             emailClient = new Pop3Client();
+            emailsReceived.Clear();
         }
 
 

@@ -22,7 +22,7 @@ namespace EmailNotifier
         private Label infoLabel;
         private string infoButtonMessage = "";
 
-        private Dictionary<string, EmailAccount> mailBoxesDict = new Dictionary<string, EmailAccount>();
+        private Dictionary<string, EmailAccount> emailAccountDict = new Dictionary<string, EmailAccount>();
         private Dictionary<string, List<IEmailMessage>> checkedEmailsDict = new Dictionary<string, List<IEmailMessage>>();
 
         //słownik przechowujący maile zaznaczone przez użytkownika do skasowania, resetowany jest każdorazowo po operacji wczytywania/kasowania maili
@@ -45,7 +45,7 @@ namespace EmailNotifier
             //w RELEASE startuje zminimalizowany
 #if DEBUG
 #else
-            if (mailBoxesDict.Count > 0)
+            if (emailAccountDict.Count > 0)
             {
                 this.WindowState = FormWindowState.Minimized;
                 this.ShowInTaskbar = false;
@@ -66,7 +66,7 @@ namespace EmailNotifier
 
         private void setupStatusLabel()
         {
-            if(mailBoxesDict.Count == 0)
+            if(emailAccountDict.Count == 0)
             {
                 statusLabel.Visible = true;
                 statusLabel.Text = "no email accounts defined";
@@ -136,7 +136,7 @@ namespace EmailNotifier
                     decompressedStream.Close();
                 }
 
-                this.mailBoxesDict = dataBundle.mailBoxes;
+                this.emailAccountDict = dataBundle.mailBoxes;
                 this.emailsToBeDeletedDict = dataBundle.emailsToBeDeletedDict;
                 ProgramSettings.checkEmailTimespan = dataBundle.checkEmailTimespan;
                 ProgramSettings.numberOfEmailsKept = dataBundle.numberOfEmailsKept;
@@ -160,7 +160,7 @@ namespace EmailNotifier
         // uruchamia okno konfiguracji kont mailowych i przypisuje metodę do zdarzenia zapisu w tym oknie
         private void configureEmailAccounts()
         {
-            ConfigurationForm configForm = new ConfigurationForm(generateAccountConfigurationsDict(mailBoxesDict));    //przesyłam słownik konfiguracji kont, żeby można było anulować zmiany
+            ConfigurationForm configForm = new ConfigurationForm(generateAccountConfigurationsDict(emailAccountDict));    //przesyłam słownik konfiguracji kont, żeby można było anulować zmiany
             configForm.saveButtonClickedEvent += configurationFormSaveButtonClicked;
             configForm.ShowDialog();
             configForm.saveButtonClickedEvent -= configurationFormSaveButtonClicked;    //likwiduję zdarzenie żeby zapobiec wyciekowi pamięci
@@ -286,7 +286,7 @@ namespace EmailNotifier
         private void SaveToFileButon_Click(object sender, EventArgs e)
         {
             string textToPrint = DateTime.Now.ToString() + "\r\n\r\n";
-            foreach (EmailAccount account in mailBoxesDict.Values)
+            foreach (EmailAccount account in emailAccountDict.Values)
             {
                 textToPrint += account.ToString();
             }
@@ -299,7 +299,7 @@ namespace EmailNotifier
         {
             if (MyMessageBox.display("Deleting all emails from the data file. Account setting will not be changed. Proceed?", MyMessageBoxType.YesNo) == MyMessageBoxResults.Yes)
             {
-                foreach (EmailAccount account in mailBoxesDict.Values)
+                foreach (EmailAccount account in emailAccountDict.Values)
                 {
                     account.clearData();
                 }
@@ -359,7 +359,7 @@ namespace EmailNotifier
             {
                 string accountName = listview.Name;
                 EmailAccount account;
-                mailBoxesDict.TryGetValue(accountName, out account);
+                emailAccountDict.TryGetValue(accountName, out account);
 
                 List<IEmailMessage> emailsToDelete;
                 emailsToBeDeletedDict.TryGetValue(accountName, out emailsToDelete);
@@ -415,9 +415,9 @@ namespace EmailNotifier
                 IEmailAccountConfiguration accountConfig;
                 args.emailAccountConfigs.TryGetValue(accountName, out accountConfig);
                 EmailAccount account;
-                if (mailBoxesDict.ContainsKey(accountName))
+                if (emailAccountDict.ContainsKey(accountName))
                 {
-                    mailBoxesDict.TryGetValue(accountName, out account);
+                    emailAccountDict.TryGetValue(accountName, out account);
                     account.configuration = accountConfig;
                 }
                 else
@@ -425,18 +425,18 @@ namespace EmailNotifier
                     EmailAccount newAccount = new EmailAccount();
                     newAccount.configuration = accountConfig;
                     newAccount.name = accountName;
-                    mailBoxesDict.Add(accountName, newAccount);
+                    emailAccountDict.Add(accountName, newAccount);
                 }
             }
 
             // usuwam konto które jest w słowniku kont a nie ma go w słowniku otrzymanym z okna konfiguracji
-            string[] oldAccountNames = new string[mailBoxesDict.Keys.Count];
-            mailBoxesDict.Keys.CopyTo(oldAccountNames, 0);
+            string[] oldAccountNames = new string[emailAccountDict.Keys.Count];
+            emailAccountDict.Keys.CopyTo(oldAccountNames, 0);
             foreach (string accountName in oldAccountNames)
             {
                 if (!args.emailAccountConfigs.ContainsKey(accountName))
                 {
-                    mailBoxesDict.Remove(accountName);
+                    emailAccountDict.Remove(accountName);
                 }
             }
             setupStatusLabel();
@@ -510,7 +510,7 @@ namespace EmailNotifier
         //główna metoda uruchamiana ręcznie oraz przez timer
         private bool checkForEmails()
         {
-            bool messagesReceived = false;
+            bool EmailsReceived = false;
 
             if (!NetworkInterface.GetIsNetworkAvailable())       //nowe wiadomości sprawdzam tylko wtedy gdy jest internet
             {
@@ -518,53 +518,53 @@ namespace EmailNotifier
             }
             else
             {
-                foreach (string mailboxName in this.mailBoxesDict.Keys)
+                foreach (string accountName in this.emailAccountDict.Keys)
                 {
                     try
                     {
-                        EmailAccount mailbox;
-                        mailBoxesDict.TryGetValue(mailboxName, out mailbox);
-                        IEmailAccountConfiguration emailConfiguration = mailbox.configuration;
+                        EmailAccount account;
+                        emailAccountDict.TryGetValue(accountName, out account);
+                        IEmailAccountConfiguration emailConfiguration = account.configuration;
                         getEmailService(emailConfiguration);
 
-                        if (mailbox.allEmailsList.Count == 0)
+                        if (account.allEmailsList.Count == 0)
                         {
-                            if (getMessages(mailbox, ProgramSettings.numberOfEmailsAtSetup))
-                                messagesReceived = true;
+                            if (getEmails(account, ProgramSettings.numberOfEmailsAtSetup))
+                                EmailsReceived = true;
                         }
                         else
                         {
-                            IEmailMessage newestEmail = mailbox.allEmailsList.First.Value;
+                            IEmailMessage newestEmail = account.allEmailsList.First.Value;
 
-                            if (getAndDeleteMessages(mailbox, newestEmail))
-                                messagesReceived = true;
+                            if (getAndDeleteEmails(account, newestEmail))
+                                EmailsReceived = true;
                         }
                     }
                     catch (EmailServiceException e)
                     {
-                        handleEmailServiceException(e, mailboxName);
+                        handleEmailServiceException(e, accountName);
                     }
                     catch(System.IO.IOException ex)
                     {
-                        handleEmailServiceException(ex, mailboxName);
+                        handleEmailServiceException(ex, accountName);
                     }
                 }
             }
-            return messagesReceived;
+            return EmailsReceived;
         }
 
 
         //metoda czytająca z serwera tylko gdy konto jest nowododane, tzn użyta jest jednorazowo dla każdego konta
         //dostarcza pierwszą paczkę emaili "na start"
         //zwraca true jeżeli z serwera załadowane zostaną jakieś wiadomości
-        private bool getMessages(EmailAccount mailbox, int numberOfMessages = 4)
+        private bool getEmails(EmailAccount account, int numberOfEmails = 4)
         {
 
-            LinkedList<IEmailMessage> messages = emailService.ReceiveEmails(numberOfMessages);
+            LinkedList<IEmailMessage> emails = emailService.ReceiveEmails(numberOfEmails);
 
-            if (messages.Count > 0)
+            if (emails.Count > 0)
             {
-                mailbox.addEmails(messages);
+                account.addEmails(emails);
                 return true;
             }
             return false;
@@ -574,27 +574,23 @@ namespace EmailNotifier
         //metoda czytająca z serwera wiadomości nowsze od przekazanej jako parametr
         //równocześnie kasuje z serwera zaznaczone wiadomości
         //zwraca true jeżeli z serwera załadowane zostaną jakieś wiadomości
-        private bool getAndDeleteMessages(EmailAccount mailbox, IEmailMessage email)
+        private bool getAndDeleteEmails(EmailAccount account, IEmailMessage email)
         {
-            bool messagesReceived = false;
-
             List<IEmailMessage> emailsToDelete;
-            emailsToBeDeletedDict.TryGetValue(mailbox.name, out emailsToDelete);
+            emailsToBeDeletedDict.TryGetValue(account.name, out emailsToDelete);
             LinkedList<IEmailMessage> newEmails = emailService.ReceiveAndDelete(email, emailsToDelete);
 
             if(emailsToDelete != null)
             {
-                mailbox.markEmailsDeletedFromServer(emailsToDelete);
-                emailsToBeDeletedDict.Remove(mailbox.name);
+                account.markEmailsDeletedFromServer(emailsToDelete);
+                emailsToBeDeletedDict.Remove(account.name);
                 emailsDeletedFromServer = true;
             }
             if (newEmails.Count > 0)
             {
-                mailbox.addEmails(newEmails);
-                messagesReceived = true;
+                account.addEmails(newEmails);
             }
-
-            return messagesReceived;
+            return account.hasNewEmails;
         }
 
 
@@ -682,19 +678,19 @@ namespace EmailNotifier
             addInfoLabel();
             addTabControl();
 
-            foreach (string mailboxName in mailBoxesDict.Keys)
+            foreach (string accountName in emailAccountDict.Keys)
             {
-                EmailAccount mailbox;
-                mailBoxesDict.TryGetValue(mailboxName, out mailbox);
+                EmailAccount account;
+                emailAccountDict.TryGetValue(accountName, out account);
                 LinkedList<IEmailMessage> emailsList = null;
 
                 switch (this.emailsDisplayed)
                 {
                     case EmailListType.allEmails:
-                        emailsList = mailbox.allEmailsList;
+                        emailsList = account.allEmailsList;
                         break;
                     case EmailListType.newEmails:
-                        emailsList = mailbox.newEmailsList;
+                        emailsList = account.newEmailsList;
                         break;
                 }
 
@@ -702,7 +698,7 @@ namespace EmailNotifier
                 {
                     TabPage tabPage = generateBlankTabPage();
                     ListView listView = generateBlankListview(listviewWidth);
-                    listView.Name = mailbox.name;
+                    listView.Name = account.name;
 
                     int emailIndex = 0;    //licznik wiadomości; posłuży do skrócenia listy do tej liczby wiadomości, którą użytkownik zdefiniował w konfiguracji
 
@@ -726,7 +722,7 @@ namespace EmailNotifier
                     }
                     //uruchamiam funkcję usuwającą nadliczbowe emaile z mailboxa
                     if (emailsDisplayed == EmailListType.allEmails && displayedEmailNumber > ProgramSettings.numberOfEmailsKept)
-                        mailbox.trimEmailDisplayList(emailIndex);
+                        account.trimEmailDisplayList(emailIndex);
                     //
                     //wysokość listy wiadomości
                     //
@@ -737,7 +733,7 @@ namespace EmailNotifier
                     //
                     //wysokość okna zakładki
                     //
-                    tabPage.Text = mailboxName;
+                    tabPage.Text = accountName;
                     tabPage.Width = listView.Width + 3;
                     tabPage.Height = listView.Height + 20;              //dodaję margines
                     tabPage.Controls.Add(listView);
@@ -890,23 +886,23 @@ namespace EmailNotifier
             ListView.CheckedListViewItemCollection checkedItems = listView.CheckedItems;
             if (checkedItems.Count > 0)
             {
-                string mailboxName = listView.Name;
+                string accountName = listView.Name;
 
                 List<IEmailMessage> emailsToDelete;
-                if (emailsToBeDeletedDict.ContainsKey(mailboxName))
+                if (emailsToBeDeletedDict.ContainsKey(accountName))
                 {
-                    emailsToBeDeletedDict.TryGetValue(mailboxName, out emailsToDelete);
+                    emailsToBeDeletedDict.TryGetValue(accountName, out emailsToDelete);
                 }
                 else
                 {
                     emailsToDelete = new List<IEmailMessage>();
-                    emailsToBeDeletedDict.Add(mailboxName, emailsToDelete);
+                    emailsToBeDeletedDict.Add(accountName, emailsToDelete);
                 }
 
                 foreach (ListViewItem item in checkedItems)
                 {
                     item.ImageIndex = item.ImageIndex < 0 ? 0 : -1;
-                    toggleDeleteEmail(item, emailsToDelete, mailboxName);
+                    toggleDeleteEmail(item, emailsToDelete, accountName);
                 }
                 listView.Refresh();
             }
@@ -923,28 +919,28 @@ namespace EmailNotifier
         }
 
 
-        private void toggleDeleteEmail(ListViewItem item, List<IEmailMessage> emailsToDelete, string mailboxName)
+        private void toggleDeleteEmail(ListViewItem item, List<IEmailMessage> emailsToDelete, string accountName)
         {
-            IEmailMessage message = item.Tag as IEmailMessage;
-            EmailAccount mailbox;
-            mailBoxesDict.TryGetValue(mailboxName, out mailbox);
+            IEmailMessage email = item.Tag as IEmailMessage;
+            EmailAccount account;
+            emailAccountDict.TryGetValue(accountName, out account);
 
-            if (emailsToDelete.Contains(message))
+            if (emailsToDelete.Contains(email))
             {
-                markEmailAsNotToBeDeleted(emailsToDelete, message, mailbox);
+                markEmailAsNotToBeDeleted(emailsToDelete, email, account);
             }
             else
             {
-                mailbox.markEmailDelete(message);
-                emailsToDelete.Add(message);
+                account.markEmailDelete(email);
+                emailsToDelete.Add(email);
             }
         }
 
 
-        private void markEmailAsNotToBeDeleted(List<IEmailMessage> emailsToDelete, IEmailMessage message, EmailAccount mailbox)
+        private void markEmailAsNotToBeDeleted(List<IEmailMessage> emailsToDelete, IEmailMessage email, EmailAccount account)
         {
-            mailbox.markEmailDoNotDelete(message);
-            emailsToDelete.Remove(message);
+            account.markEmailDoNotDelete(email);
+            emailsToDelete.Remove(email);
         }
 
 
@@ -1075,7 +1071,7 @@ namespace EmailNotifier
         {
             foreach (string accountName in checkedEmailsDict.Keys)
             {
-                var account = mailBoxesDict[accountName];
+                var account = emailAccountDict[accountName];
                 var emails = checkedEmailsDict[accountName];
                 account.updateNewEmailsList(emails);
             }
@@ -1084,7 +1080,7 @@ namespace EmailNotifier
 
         private void saveDataToFile(string fileName)
         {
-            DataBundle dataBundle = new DataBundle(mailBoxesDict, emailsToBeDeletedDict)
+            DataBundle dataBundle = new DataBundle(emailAccountDict, emailsToBeDeletedDict)
             {
                 numberOfEmailsKept = ProgramSettings.numberOfEmailsKept,
                 showNotificationTimespan = ProgramSettings.showNotificationTimespan,

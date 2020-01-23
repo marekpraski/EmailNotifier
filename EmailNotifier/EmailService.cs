@@ -11,8 +11,6 @@ namespace EmailNotifier
     public class EmailService : IEmailService
     {
         protected readonly LinkedList<IEmailMessage> emailsReceived = new LinkedList<IEmailMessage>();
-
-
         public virtual void DeleteEmails(IList<IEmailMessage> emailsToDelete)
         {
             throw new NotImplementedException();

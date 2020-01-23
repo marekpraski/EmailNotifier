@@ -20,6 +20,7 @@ namespace EmailNotifier
             //emailClient = new ImapClient(new ProtocolLogger("imap.log"));
             emailClient = new ImapClient();
             this.emailAccountConfiguration = emailAccountConfiguration;
+            emailsReceived.Clear();
         }
 
 
