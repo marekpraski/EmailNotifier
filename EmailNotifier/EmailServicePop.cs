@@ -95,7 +95,7 @@ namespace EmailNotifier
         /// <returns></returns>
         public override LinkedList<IEmailMessage> ReceiveEmails(IEmailMessage newestEmail)
         {
-            getMessages(newestEmail);
+            getEmails(newestEmail);
             if (connected) this.emailClient.Disconnect(true);
 
             return this.emailsReceived;
@@ -117,7 +117,7 @@ namespace EmailNotifier
 
                     for (int i = numberOfMessagesOnServer - 1; i >= 0 && i > (numberOfMessagesOnServer - 1 - numberOfMessagesToReceive); i--)
                     {
-                        IEmailMessage emailMessage = getOneMessage(i);
+                        IEmailMessage emailMessage = getOneEmail(i);
                         emailsReceived.AddLast(emailMessage);
                     }
                 }
@@ -133,29 +133,27 @@ namespace EmailNotifier
         }
 
  
-        private void getMessages(IEmailMessage benchmarkEmail)
+        private void getEmails(IEmailMessage benchmarkEmail)
         {
             try
             {
                 if (connectToServer())
                 {
-                    int numberOfMessagesOnServer = emailClient.GetMessageCount();
-                    if (numberOfMessagesOnServer == 0)
+                    int numberOfEmailsOnServer = emailClient.GetMessageCount();
+                    if (numberOfEmailsOnServer == 0)
                     {
                         throw new EmailServiceException("brak wiadomości na serwerze " + emailAccountConfiguration.receiveServer.url + " emailClient.IsConnected " + emailClient.IsConnected);
                     }
 
-                    int messageIndex = numberOfMessagesOnServer - 1;                //index ostatniego, tj najnowszego, maila na serwerze
+                    int emailIndex = numberOfEmailsOnServer - 1;                //index ostatniego, tj najnowszego, maila na serwerze
                     IEmailMessage emailMessage;
 
                     do
                     {
-                        emailMessage = getOneMessage(messageIndex);
+                        emailMessage = getOneEmail(emailIndex);
                         tryAddToNewEmailsList(benchmarkEmail, emailMessage);
-                        messageIndex--;
+                        emailIndex--;
                     }
-                    //wiadomości czytam od najnowszej, aż dojdę do tej, którą już mam w bazie. Ale ...
-                    //wiadomość może być usunięta na serwerze zanim została zaczytana w programie, więc wiadomości nie będzie wtedy w bazie programu
                     while (conditionContinueGettingEmails(benchmarkEmail, emailMessage));
                 }
 
@@ -171,12 +169,12 @@ namespace EmailNotifier
         }
 
 
-        protected override IEmailMessage getOneMessage(int messageIndex)
+        protected override IEmailMessage getOneEmail(int emailIndex)
         {
-            var message = this.emailClient.GetMessage(messageIndex);
-            IEmailMessage emailMessage = createOneEmailMessage(messageIndex, message);
-            if (message.Sender != null)
-                emailMessage.SenderAddress = new EmailAddress(message.Sender.Name, message.Sender.Address);
+            var mimeMessage = this.emailClient.GetMessage(emailIndex);
+            IEmailMessage emailMessage = createOneEmailMessage(emailIndex, mimeMessage);
+            if (mimeMessage.Sender != null)
+                emailMessage.SenderAddress = new EmailAddress(mimeMessage.Sender.Name, mimeMessage.Sender.Address);
 
             return emailMessage;
         }
@@ -195,7 +193,7 @@ namespace EmailNotifier
         /// <returns></returns>
         public override LinkedList<IEmailMessage> ReceiveAndDelete(IEmailMessage newestEmail, IList<IEmailMessage> emailsToDelete = null)
         {
-            getMessages(newestEmail);
+            getEmails(newestEmail);
             deleteEmails(emailsToDelete);
 
             if (connected) this.emailClient.Disconnect(true);
@@ -220,34 +218,34 @@ namespace EmailNotifier
                     //a zanim została usunięta w pętli poniżej, więc pętlę muszę zatrzymać gdy dojdę do wiadomości na serwerze, która jest starsza niż
                     //najstarsza wiadomość przekazana do usunięcia
 
-                    IEmailMessage oldestMessage = getOldestEmail(emailsToDelete);
+                    IEmailMessage oldestEmail = getOldestEmail(emailsToDelete);
 
                     Dictionary<string, IEmailMessage> emailsToDeleteDict = constructEmailToDeleteDict(emailsToDelete);
 
-                    int numberOfMessagesOnServer = emailClient.GetMessageCount();
-                    if (numberOfMessagesOnServer == 0)
+                    int numberOfEmailsOnServer = emailClient.GetMessageCount();
+                    if (numberOfEmailsOnServer == 0)
                     {
                         throw new EmailServiceException("brak wiadomości na serwerze " + emailAccountConfiguration.receiveServer.url + " emailClient.IsConnected " + emailClient.IsConnected);
                     }
 
-                    int messageIndex = numberOfMessagesOnServer - 1;                //index ostatniego, tj najnowszego, maila na serwerze
-                    MimeMessage emailMessage;
+                    int emailIndex = numberOfEmailsOnServer - 1;                //index ostatniego, tj najnowszego, maila na serwerze
+                    MimeMessage mimeMessage;
 
                     do
                     {
-                        emailMessage = emailClient.GetMessage(messageIndex);
+                        mimeMessage = emailClient.GetMessage(emailIndex);
 
-                        if (emailsToDeleteDict.ContainsKey(emailMessage.MessageId))
+                        if (emailsToDeleteDict.ContainsKey(mimeMessage.MessageId))
                         {
-                            emailClient.DeleteMessage(messageIndex);
-                            emailsToDeleteDict.Remove(emailMessage.MessageId);
+                            emailClient.DeleteMessage(emailIndex);
+                            emailsToDeleteDict.Remove(mimeMessage.MessageId);
                         }
-                        messageIndex--;
+                        emailIndex--;
                     }
                     //teoretycznie wiadomość może być usunięta na serwerze w inny sposób pomiędzy czasem kiedy została zaznaczona do usunięcia w programie 
                     //a zanim została usunięta w tej pętli, więc pętlę muszę zatrzymać gdy dojdę do wiadomości na serwerze, 
                     //która jest starsza od najstarszej przekazanej do skasowania
-                    while (emailsToDeleteDict.Count > 0 && emailMessage.Date >= oldestMessage.DateTime && messageIndex > 0);
+                    while (emailsToDeleteDict.Count > 0 && mimeMessage.Date >= oldestEmail.DateTime && emailIndex > 0);
                 }
                 catch (MailKit.Net.Pop3.Pop3ProtocolException e)
                 {

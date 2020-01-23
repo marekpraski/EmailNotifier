@@ -17,6 +17,7 @@ namespace EmailNotifier
         string Content { get; set; }
         bool markedForDeletion { get; set; }
         bool deletedFromServer { get; set; }
+        bool visible { get; set; }
         int nrOnServer { get; set; }
     }
 }

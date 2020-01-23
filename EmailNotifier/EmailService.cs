@@ -38,7 +38,7 @@ namespace EmailNotifier
             throw new NotImplementedException();
         }
 
-        protected virtual IEmailMessage getOneMessage(int messageIndex)
+        protected virtual IEmailMessage getOneEmail(int messageIndex)
         {
             throw new NotImplementedException();
         }
@@ -76,11 +76,9 @@ namespace EmailNotifier
         protected void tryAddToNewEmailsList(IEmailMessage benchmarkEmail, IEmailMessage emailToAdd)
         {
             //sprawdzenie po ID wiadomości działa tylko wtedy, gdy w międzyczasie nie usunąłem z serwera wiadomości nowszych, niż ostatnio wczytana
-            //dlatego sprawdzam też po dacie, wczytuję tylko wiadomości młodsze od ostatniej, którą mam w bazie
-            bool compareId = emailToAdd.Id != benchmarkEmail.Id;
-            bool compareDateTime = emailToAdd.DateTime >= benchmarkEmail.DateTime;
+            //dlatego w warunku pętli czytam maile tylko do określonej daty
 
-            if (emailToAdd.Id != benchmarkEmail.Id && emailToAdd.DateTime >= benchmarkEmail.DateTime)
+            if (emailToAdd.Id != benchmarkEmail.Id)
             {
                 this.emailsReceived.AddLast(emailToAdd);
             }
@@ -88,9 +86,13 @@ namespace EmailNotifier
 
         //wiadomości czytam od najnowszej, aż dojdę do tej, którą już mam w bazie. Ale ...
         //wiadomość może być usunięta na serwerze zanim została zaczytana w programie, więc wiadomości nie będzie wtedy w bazie programu
+        //wczytuję więc tylko wiadomości młodsze od ostatniej, którą mam w bazie
+        //datę zaokrąglam do dnia, bo są maile które mają wyższy numer, ale wcześniejszą godzinę
+        //taki email powoduje zaburzenie i część maili nie zostaje wtedy wczytana gdy warunek jest po dokładnym czasie
+        //https://github.com/jstedfast/MailKit/issues/974
         protected bool conditionContinueGettingEmails(IEmailMessage benchmarkEmail, IEmailMessage emailMessage)
         {
-            return emailMessage.DateTime > benchmarkEmail.DateTime;
+            return emailMessage.DateTime.Date > benchmarkEmail.DateTime.Date.AddDays(-1.00);
         }
 
 

@@ -542,7 +542,11 @@ namespace EmailNotifier
                     }
                     catch (EmailServiceException e)
                     {
-                        handleEmailServiceException(e);
+                        handleEmailServiceException(e, mailboxName);
+                    }
+                    catch(System.IO.IOException ex)
+                    {
+                        handleEmailServiceException(ex, mailboxName);
                     }
                 }
             }
@@ -594,9 +598,9 @@ namespace EmailNotifier
         }
 
 
-        private void handleEmailServiceException(Exception e)
+        private void handleEmailServiceException(Exception e, string accountName = "")
         {
-            MyMessageBox.displayAndClose(e.Message + "    " + e.InnerException + "\r\nsee the errorlog file for details", 30);
+            MyMessageBox.displayAndClose("błąd konta  " + accountName + "\r\n" + e.Message + "    " + e.InnerException + "\r\nsee the errorlog file for details", 30);
             string errorLogFileName = "emailNotifierError.log";
             using (FileStream file = new FileStream(errorLogFileName, FileMode.Append))
             {
@@ -706,7 +710,7 @@ namespace EmailNotifier
                     messagePacketHeight = 0;
                     foreach (var emailMessage in emailsList)
                     {
-                        if (!emailMessage.deletedFromServer)        //nagłówki emaili skasowanych z serwera pozostawiam na liście, ale nie chcę ich wyświetlać
+                        if (!emailMessage.deletedFromServer && emailMessage.visible)        //nagłówki emaili skasowanych z serwera pozostawiam na liście, ale nie chcę ich wyświetlać
                         {
                             string[] emailDataRow = new string[] { emailMessage.DateTime.ToString(), emailMessage.FromAddress, emailMessage.Subject };
 
@@ -722,7 +726,7 @@ namespace EmailNotifier
                     }
                     //uruchamiam funkcję usuwającą nadliczbowe emaile z mailboxa
                     if (emailsDisplayed == EmailListType.allEmails && displayedEmailNumber > ProgramSettings.numberOfEmailsKept)
-                        mailbox.trimEmailList(displayedEmailNumber, emailIndex);
+                        mailbox.trimEmailDisplayList(emailIndex);
                     //
                     //wysokość listy wiadomości
                     //
@@ -1026,7 +1030,7 @@ namespace EmailNotifier
                 }
                 if (numberOfCheckedEmails > 0)
                 {                                                   //aktualizuję słownik i zapisuję zmiany na dysk
-                    updateNewEmailsDict();
+                    updateEmailLists();
                     saveDataToFile();
                 }
             }
@@ -1067,23 +1071,15 @@ namespace EmailNotifier
         }
 
 
-
-        /// usuwa maile zaznaczone przez użytkownika ze słownika nowych maili
-        private void updateNewEmailsDict()
+        private void updateEmailLists()
         {
-            EmailAccount account = null;
-            List<IEmailMessage> emails = null;
             foreach (string accountName in checkedEmailsDict.Keys)
             {
-                mailBoxesDict.TryGetValue(accountName, out account);
-                checkedEmailsDict.TryGetValue(accountName, out emails);
-                foreach (IEmailMessage email in emails)
-                {
-                    account.newEmailsList.Remove(email);
-                }
+                var account = mailBoxesDict[accountName];
+                var emails = checkedEmailsDict[accountName];
+                account.updateNewEmailsList(emails);
             }
         }
-
 
 
         private void saveDataToFile(string fileName)
@@ -1134,7 +1130,6 @@ namespace EmailNotifier
                 StreamWriter writer = new StreamWriter(stream);
                 writer.Write(text);
                 writer.Close();
-                int i = 1000;
             }
         }
 

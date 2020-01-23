@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -7,6 +8,7 @@ namespace EmailNotifier
     [Serializable]
     public class EmailAccount
     {
+        private ConcurrentDictionary<string, IEmailMessage> allEmailsDict;
         public string name { get; set; }
         public LinkedList<IEmailMessage> allEmailsList { get; set; }
 
@@ -22,13 +24,17 @@ namespace EmailNotifier
         {
             allEmailsList = new LinkedList<IEmailMessage>();
             newEmailsList = new LinkedList<IEmailMessage>();
+            allEmailsDict = new ConcurrentDictionary<string, IEmailMessage>();
         }
 
         public void addEmails(IEmailMessage email)
         {
+            if (allEmailsDict.TryAdd(email.Id, email))
+            {
                 allEmailsList.AddFirst(email);
                 newEmailsList.AddFirst(email);
                 hasNewEmails = true;
+            }
         }
 
         public void addEmails(LinkedList<IEmailMessage> emails)
@@ -43,70 +49,60 @@ namespace EmailNotifier
 
         public void markEmailDelete(IEmailMessage email)
         {
-            try
-            {
-            newEmailsList.Find(email).Value.markedForDeletion = true;
-            }
-            catch (Exception)
-            {
-            }
-            allEmailsList.Find(email).Value.markedForDeletion = true;
+            allEmailsDict[email.Id].markedForDeletion = true;
         }
+
 
         public void markEmailDoNotDelete(IEmailMessage email)
         {
-            try
-            {
-            newEmailsList.Find(email).Value.markedForDeletion = false;
-            }
-            catch (Exception)
-            {                
-            }
-            allEmailsList.Find(email).Value.markedForDeletion = false;
-
+            allEmailsDict[email.Id].markedForDeletion = false;
         }
 
-        public void markEmailsDeletedFromServer(List<IEmailMessage> emails)
+        public void markEmailsDeletedFromServer(List<IEmailMessage> deletedEmails)
         {
+            foreach (IEmailMessage email in deletedEmails)
+            {
+                allEmailsDict[email.Id].deletedFromServer = true;
+                allEmailsDict[email.Id].Content = "";
+            }
+        }
+
+
+        public void updateNewEmailsList(List<IEmailMessage> emails)
+        {
+            //TODO: jeżeli użytkownik zaznaczy email do skasowania w oknie wszystkich emaili, a email ten jest również nowym mailem to email ten nie jest usuwany z listy nowych maili; można by to obsłużyć podczas operacji zaznaczania maili do skasowania
+            //ale chyba najprościej czyścić takie przypadki w tym miejscu; zakładam że lista nowych maili będzie zawsze stosunkowo krótka, więc nie zajmie to dużo czasu
+
+            for (int i = 0; i < newEmailsList.Count; i++)
+            {
+                if (newEmailsList.ElementAt(i).deletedFromServer)
+                    newEmailsList.Remove(newEmailsList.ElementAt(i));
+            }
+
+
             foreach (IEmailMessage email in emails)
             {
-                LinkedListNode<IEmailMessage> node = allEmailsList.Find(email);
-                node.Value.deletedFromServer = true;
-                node.Value.Content = "";
+                if(newEmailsList.Contains(email))
+                    newEmailsList.Remove(email);
             }
         }
 
 
         /// <summary>
-        /// docina listę wszystkich emaili do liczby widocznych emaili zdefiniowanej przez użytkownika, usuwając odpowiednią liczbę najstarszych maili.
+        /// docina listę wszystkich emaili do liczby widocznych emaili zdefiniowanej przez użytkownika, oznaczając odpowiednią liczbę najstarszych maili jako niewidoczne
         /// zadziała tylko jeżeli liczba nowych emaili jest zero;
         /// emailTrimIndex - pozycja na liście allEmailsList powyżej której usuwam emaile z tej listy
         /// </summary>
         /// <param name="emailTrimIndex"></param>
-        public void trimEmailList(int numberOfEmailsDisplayed, int emailTrimIndex)
+        public void trimEmailDisplayList(int emailTrimIndex)
         {
-            //nie mogę po prostu zastosować parametru z ustawień, bo lista maili zawiera też
-            //maile oznaczone jako skasowane z serwera, które nie są wyświetlane
-            //a parametr liczby trzymanych maili odnosi się do maili widocznych dla użytkownika
-
-            //jeżeli użytkownik zaznaczy email do skasowania w oknie wszystkich emaili, a email ten jest nowym mailem
-            //to email ten nie jest usuwany z listy nowych maili; można by to obsłużyć podczas operacji zaznaczania maili do skasowania
-            //ale chyba najprościej czyścić takie przypadki w tym miejscu
-            //zakładam że lista nowych maili będzie zawsze stosunkowo krótka, więc nie zajmie to dużo czasu
-            if(newEmailsList.Count > 0)
+            if (newEmailsList.Count == 0)
             {
-                for(int i=0; i<newEmailsList.Count; i++)
+                int i = emailTrimIndex +1;
+                while (allEmailsList.ElementAt(i).visible && i < allEmailsList.Count)
                 {
-                    if (newEmailsList.ElementAt(i).deletedFromServer)
-                        newEmailsList.Remove(newEmailsList.ElementAt(i));
-                }
-            }
-
-            if(newEmailsList.Count == 0)
-            {
-                while (allEmailsList.Count > emailTrimIndex)
-                {
-                    allEmailsList.RemoveLast();
+                    allEmailsList.ElementAt(i).visible = false;
+                    i++;
                 }
             }
         }
@@ -126,6 +122,7 @@ namespace EmailNotifier
         {
             allEmailsList.Clear();
             newEmailsList.Clear();
+            allEmailsDict.Clear();
             hasNewEmails = false;
         }
 

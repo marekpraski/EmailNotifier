@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using MailKit.Security;
 using MimeKit;
 using MailKit.Search;
+using System.IO;
 
 namespace EmailNotifier
 {
@@ -70,12 +71,12 @@ namespace EmailNotifier
         /// <summary>
         /// czyta określoną liczbę najnowszych emaili z serwera
         /// </summary>
-        /// <param name="numberOfMessagesToReceive"> liczba wiadomości do przeczytania z serwera</param>
+        /// <param name="numberOfEmailsToReceive"> liczba wiadomości do przeczytania z serwera</param>
         /// <returns></returns>
 
-        public override LinkedList<IEmailMessage> ReceiveEmails(int numberOfMessagesToReceive)
+        public override LinkedList<IEmailMessage> ReceiveEmails(int numberOfEmailsToReceive)
         {
-            getMessages(numberOfMessagesToReceive);
+            getEmails(numberOfEmailsToReceive);
             if (connected) this.emailClient.Disconnect(true);
 
             return this.emailsReceived;
@@ -91,7 +92,7 @@ namespace EmailNotifier
         /// <returns></returns>
         public override LinkedList<IEmailMessage> ReceiveEmails(IEmailMessage newestEmail)
         {
-            getMessages(newestEmail);
+            getEmails(newestEmail);
             if (connected) this.emailClient.Disconnect(true);
 
             return this.emailsReceived;
@@ -99,25 +100,25 @@ namespace EmailNotifier
 
 
 
-        private void getMessages(int numberOfMessagesToReceive)
+        private void getEmails(int numberOfEmailsToReceive)
         {
             try
             {
                 if (connectToServer())
                 {
                     emailClient.Inbox.Open(FolderAccess.ReadOnly);
-                    int numberOfMessagesOnServer = emailClient.Inbox.Count;
+                    //testMethod();
+                    int numberOfEmailsOnServer = emailClient.Inbox.Count;
 
-                    if(numberOfMessagesOnServer == 0)
+                    if(numberOfEmailsOnServer == 0)
                     {
                         throw new EmailServiceException("brak wiadomości na serwerze " + emailAccountConfiguration.receiveServer.url + " emailClient.IsConnected " + emailClient.IsConnected);
                     }
-                    for (int i = numberOfMessagesOnServer - 1; i >= 0 && i > (numberOfMessagesOnServer - 1 - numberOfMessagesToReceive); i--)
+                    for (int i = numberOfEmailsOnServer - 1; i >= 0 && i > (numberOfEmailsOnServer - 1 - numberOfEmailsToReceive); i--)
                     {
-                        IEmailMessage emailMessage = getOneMessage(i);
+                        IEmailMessage emailMessage = getOneEmail(i);
                         emailsReceived.AddLast(emailMessage);
                     }
-                    //testMethod();
                 }
             }
             catch (ImapProtocolException e)
@@ -131,28 +132,28 @@ namespace EmailNotifier
         }
 
 
-        private void getMessages(IEmailMessage benchmarkEmail)
+        private void getEmails(IEmailMessage benchmarkEmail)
         {
             try
             {
                 if (connectToServer())
                 {
                     emailClient.Inbox.Open(FolderAccess.ReadWrite);
-                    int numberOfMessagesOnServer = emailClient.Inbox.Count;
+                    int numberOfEmailsOnServer = emailClient.Inbox.Count;
 
-                    if (numberOfMessagesOnServer == 0)
+                    if (numberOfEmailsOnServer == 0)
                     {
                         throw new EmailServiceException("brak wiadomości na serwerze " + emailAccountConfiguration.receiveServer.url + " emailClient.IsConnected " + emailClient.IsConnected);
                     }
 
-                    int messageIndex = numberOfMessagesOnServer - 1;                //index ostatniego, tj najnowszego, maila na serwerze
+                    int emailIndex = numberOfEmailsOnServer - 1;                //index ostatniego, tj najnowszego, maila na serwerze
                     IEmailMessage emailMessage;
 
                     do
                     {
-                        emailMessage = getOneMessage(messageIndex);
+                        emailMessage = getOneEmail(emailIndex);
                         tryAddToNewEmailsList(benchmarkEmail, emailMessage);
-                        messageIndex--;
+                        emailIndex--;
                     }
 
                     while (conditionContinueGettingEmails(benchmarkEmail, emailMessage));
@@ -170,37 +171,48 @@ namespace EmailNotifier
         }
 
 
-        protected override IEmailMessage getOneMessage(int messageIndex)
+        protected override IEmailMessage getOneEmail(int emailIndex)
         {
-            var message = this.emailClient.Inbox.GetMessage(messageIndex);
+            var mimeMessage = this.emailClient.Inbox.GetMessage(emailIndex);
 
-            IEmailMessage emailMessage = createOneEmailMessage(messageIndex, message);
-            if (message.Sender != null)
-                emailMessage.SenderAddress = new EmailAddress(message.Sender.Name, message.Sender.Address);
+            IEmailMessage emailMessage = createOneEmailMessage(emailIndex, mimeMessage);
+            if (mimeMessage.Sender != null)
+                emailMessage.SenderAddress = new EmailAddress(mimeMessage.Sender.Name, mimeMessage.Sender.Address);
 
             return emailMessage;
         }
 
         private void testMethod()
         {
+            string text = "";
             // search for messages where the Subject header contains either "MimeKit" or "MailKit"
-            DateTime date = new DateTime(2020, 1, 21, 8, 30, 52);
-            var query = SearchQuery.SentOn(date);//.SubjectContains("certyfikat").Or(SearchQuery.SubjectContains("idealna"));
-            var uids = emailClient.Inbox.Search(query);
-            var items = emailClient.Inbox.Fetch(uids, MessageSummaryItems.UniqueId | MessageSummaryItems.InternalDate );
+            //DateTime date = new DateTime(2020, 1, 21, 8, 30, 52);
+            //var query = SearchQuery.SentOn(date);//.SubjectContains("certyfikat").Or(SearchQuery.SubjectContains("idealna"));
+            //var uids = emailClient.Inbox.Search(query);
+            //var items = emailClient.Inbox.Fetch(uids, MessageSummaryItems.UniqueId | MessageSummaryItems.InternalDate );
+            var items = emailClient.Inbox.Fetch(0, -1, MessageSummaryItems.UniqueId | MessageSummaryItems.InternalDate | MessageSummaryItems.Envelope);
             foreach (var item in items)
             {
 
                 // IMessageSummary.TextBody is a convenience property that finds the 'text/plain' body part for us
-                var bodyPart = item.TextBody;
+                var id = item.UniqueId;
 
-                var title = item.InternalDate;
+                var internalDate = item.InternalDate;
                 // download the 'text/plain' body part
-                var body = (TextPart)emailClient.Inbox.GetBodyPart(item.UniqueId, bodyPart);
+                var date = item.Date;
 
                 // TextPart.Text is a convenience property that decodes the content and converts the result to
                 // a string for us
-                var text = body.Text;
+                var subject = item.NormalizedSubject;
+                text += id.ToString() + "   date:  " + date.ToString() + "   internal date:  "+ internalDate.ToString() + "   " + subject +"\r\n";
+            }
+
+
+            using (FileStream stream = new FileStream("mailLog.txt", FileMode.Append))
+            {
+                StreamWriter writer = new StreamWriter(stream);
+                writer.Write(text);
+                writer.Close();
             }
         }
 
@@ -218,7 +230,7 @@ namespace EmailNotifier
         /// <returns></returns>
         public override LinkedList<IEmailMessage> ReceiveAndDelete(IEmailMessage newestEmail, IList<IEmailMessage> emailsToDelete = null)
         {
-            getMessages(newestEmail);
+            getEmails(newestEmail);
             deleteEmails(emailsToDelete);
 
             if (connected) this.emailClient.Disconnect(true);
@@ -247,7 +259,7 @@ namespace EmailNotifier
 
                     Dictionary<string, IEmailMessage> emailsToDeleteDict = constructEmailToDeleteDict(emailsToDelete);                    
 
-                    int numberOfMessagesOnServer = emailClient.Inbox.Count;
+                    int numberOfEmailsOnServer = emailClient.Inbox.Count;
                     IMailFolder trash;
                     try
                     {
@@ -260,24 +272,24 @@ namespace EmailNotifier
                         throw new EmailServiceException("The email service does not support moving emails to Trash " + emailAccountConfiguration.receiveServer.url, e);
                     }
 
-                    int messageIndex = numberOfMessagesOnServer - 1;                //index ostatniego, tj najnowszego, maila na serwerze
-                    MimeMessage emailMessage;
+                    int emailIndex = numberOfEmailsOnServer - 1;                //index ostatniego, tj najnowszego, maila na serwerze
+                    MimeMessage mimeMessage;
 
                     do
                     {
-                        emailMessage = emailClient.Inbox.GetMessage(messageIndex);
+                        mimeMessage = emailClient.Inbox.GetMessage(emailIndex);
 
-                        if (emailsToDeleteDict.ContainsKey(emailMessage.MessageId))
+                        if (emailsToDeleteDict.ContainsKey(mimeMessage.MessageId))
                         {
-                            emailClient.Inbox.MoveTo(messageIndex, trash); // .AddFlags(messageIndex, MessageFlags.Deleted,true);
-                            emailsToDeleteDict.Remove(emailMessage.MessageId);
+                            emailClient.Inbox.MoveTo(emailIndex, trash); // .AddFlags(messageIndex, MessageFlags.Deleted,true);
+                            emailsToDeleteDict.Remove(mimeMessage.MessageId);
                         }
-                        messageIndex--;
+                        emailIndex--;
                     }
                     //teoretycznie wiadomość może być usunięta na serwerze w inny sposób pomiędzy czasem kiedy została zaznaczona do usunięcia w programie 
                     //a zanim została usunięta w tej pętli, więc pętlę muszę zatrzymać gdy dojdę do wiadomości na serwerze, 
                     //która jest starsza od najstarszej przekazanej do skasowania
-                    while (emailsToDeleteDict.Count > 0 && emailMessage.Date >= oldestMessage.DateTime && messageIndex > 0);
+                    while (emailsToDeleteDict.Count > 0 && mimeMessage.Date >= oldestMessage.DateTime && emailIndex > 0);
                 }
                 catch (ImapProtocolException e)
                 {
