@@ -23,7 +23,7 @@ namespace EmailNotifier
             Application.SetCompatibleTextRenderingDefault(false);
             
             Application.Run(new MainForm());
-                //Application.Run(new Form1());
+            //Application.Run(new Form1());
 
             }
             catch (System.Reflection.TargetInvocationException ex)

@@ -11,6 +11,7 @@ using System.Drawing;
 using System.Windows.Forms.VisualStyles;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 
 namespace EmailNotifier
 {
@@ -35,12 +36,15 @@ namespace EmailNotifier
 
         private IEmailService emailService = null;
 
+        private CancellationTokenSource cancellationTokenSource;
+
 
 
         public MainForm()
         {
             InitializeComponent();
             initialSetup();
+            this.cancellationTokenSource = new CancellationTokenSource();
 
             //w RELEASE startuje zminimalizowany
 #if DEBUG
@@ -60,30 +64,8 @@ namespace EmailNotifier
         {
             assertDataDirectoryExists();
             setupMailboxes();
-            setupStatusLabel();
+            setDefaultStatusLabel();
             setTimers();
-        }
-
-        private void setupStatusLabel()
-        {
-            if(emailAccountDict.Count == 0)
-            {
-                statusLabel.Visible = true;
-                statusLabel.Text = "no email accounts defined";
-            }
-            else
-            {
-                statusLabel.Visible = false;
-            }
-        }
-
-        private void setTimers()
-        {
-            //zamieniam minuty na milisekundy, nie mniej niż 5 minut
-            this.checkEmailsTimer.Interval = ProgramSettings.checkEmailTimespan * 60000 < 300000 ? 300000 : ProgramSettings.checkEmailTimespan * 60000;
-
-            //zamieniam sekundy na milisekundy, nie mniej niż 20 sekund
-            this.toggleNotifyiconTimer.Interval = ProgramSettings.showNotificationTimespan * 1000 < 20000 ? 20000 : ProgramSettings.showNotificationTimespan * 1000;
         }
 
 
@@ -93,6 +75,7 @@ namespace EmailNotifier
             Directory.CreateDirectory(ProgramSettings.fileSavePath);
         }
 
+ 
 
         // jeżeli istnieje plik z danymi, czyta konfigurację kont z pliku
         private void setupMailboxes()
@@ -103,6 +86,17 @@ namespace EmailNotifier
                 readDataFromFile(emailDataFile);
             }
         }
+
+
+        private void setTimers()
+        {
+            //zamieniam minuty na milisekundy, nie mniej niż 5 minut
+            this.checkEmailsTimer.Interval = ProgramSettings.checkEmailTimespan * 60000 < 300000 ? 300000 : ProgramSettings.checkEmailTimespan * 60000;
+
+            //zamieniam sekundy na milisekundy, nie mniej niż 20 sekund
+            this.toggleNotifyiconTimer.Interval = ProgramSettings.showNotificationTimespan * 1000 < 20000 ? 20000 : ProgramSettings.showNotificationTimespan * 1000;
+        }
+
 
 
 
@@ -184,6 +178,42 @@ namespace EmailNotifier
 
 
 
+        #region Region status Label
+
+        private void setDefaultStatusLabel()
+        {
+            if (emailAccountDict.Count == 0)
+            {
+                statusLabel.Visible = true;
+                statusLabel.Text = "no email accounts defined";
+            }
+            else
+            {
+                statusLabel.Visible = false;
+            }
+        }
+
+
+
+        private delegate void StatusLabelHandler(string txt);
+
+        private void setStatusLabelText(string txt)
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new StatusLabelHandler(setStatusLabelText), txt);
+            }
+            else
+            {
+                this.statusLabel.Visible = true;
+                this.statusLabel.Text = txt;
+            }
+        }
+
+        #endregion
+
+
+
         #region Region - interakcja użytkownika w głównym pasku i oknie programu
 
 
@@ -205,6 +235,23 @@ namespace EmailNotifier
             else
             {
                 this.ShowInTaskbar = true;
+            }
+        }
+
+
+        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (MyMessageBox.display("This will exit the application, monitoring of email accounts will stop. Proceed?", MyMessageBoxType.YesNo) == MyMessageBoxResults.Yes)
+            {
+                this.cancellationTokenSource.Cancel();
+                if (emailsDeletedFromServer)
+                    saveDataToFile();
+                if (emailsDisplayed != EmailListType.none)
+                    closeEmailsDisplayWindow();
+            }
+            else
+            {
+                e.Cancel = true;
             }
         }
 
@@ -239,15 +286,15 @@ namespace EmailNotifier
 
 
         // ręczne sprawdzanie poczty
-        private void checkForEmailsButton_Click(object sender, EventArgs e)
+        private async void checkForEmailsButton_Click(object sender, EventArgs e)
         {
             try
-            {
+            {                
                 if (emailsDisplayed != EmailListType.none)
                 {
                     closeEmailsDisplayWindow();
                 }
-                if (checkForEmails())
+                if (await checkForEmails())
                 {
                     saveDataToFile();
                     displayNewEmails();
@@ -256,6 +303,7 @@ namespace EmailNotifier
                 {
                     MyMessageBox.displayAndClose("no new messages");
                 }
+                
             }
             catch(ArgumentException exc)
             {
@@ -374,23 +422,6 @@ namespace EmailNotifier
 
 
 
-        // uruchamia funkcję zamykania okna wyświetlania emaili, jeżeli jest ono otwarte, w celu zapisania ewentualnych zmian
-        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            if (MyMessageBox.display("This will exit the application, monitoring of email accounts will stop. Proceed?", MyMessageBoxType.YesNo) == MyMessageBoxResults.Yes)
-            {
-                if (emailsDeletedFromServer)
-                    saveDataToFile();
-                if (emailsDisplayed != EmailListType.none)
-                    closeEmailsDisplayWindow();
-            }
-            else
-            {
-                e.Cancel = true;
-            }
-        }
-
-
         #endregion
 
 
@@ -439,7 +470,7 @@ namespace EmailNotifier
                     emailAccountDict.Remove(accountName);
                 }
             }
-            setupStatusLabel();
+            setDefaultStatusLabel();
             configForm.Close();
         }
 
@@ -449,9 +480,9 @@ namespace EmailNotifier
 
         #region Region - automat sprawdzający pocztę
 
-        private void CheckEmailsTimer_Tick(object sender, EventArgs e)
+        private async void CheckEmailsTimer_Tick(object sender, EventArgs e)
         {
-            if (checkForEmails())
+            if (await checkForEmails())
             {
                 saveDataToFile();
                 this.newEmailsReceived = true;
@@ -508,9 +539,9 @@ namespace EmailNotifier
 
 
         //główna metoda uruchamiana ręcznie oraz przez timer
-        private bool checkForEmails()
+        private async Task<bool> checkForEmails()
         {
-            bool EmailsReceived = false;
+            bool emailsReceived = false;
 
             if (!NetworkInterface.GetIsNetworkAvailable())       //nowe wiadomości sprawdzam tylko wtedy gdy jest internet
             {
@@ -527,18 +558,24 @@ namespace EmailNotifier
                         IEmailAccountConfiguration emailConfiguration = account.configuration;
                         getEmailService(emailConfiguration);
 
-                        if (account.allEmailsList.Count == 0)
+                        var token = cancellationTokenSource.Token;
+                        Task t = Task.Factory.StartNew(()=> 
                         {
-                            if (getEmails(account, ProgramSettings.numberOfEmailsAtSetup))
-                                EmailsReceived = true;
+                            if (token.IsCancellationRequested)
+                                throw new OperationCanceledException();
+                            tryGetEmails(ref emailsReceived, account);
+                        },token);
+                        await t;
+                        try
+                        {
+                            Task.WaitAll(t);
                         }
-                        else
+                        catch (AggregateException ae)
                         {
-                            IEmailMessage newestEmail = account.allEmailsList.First.Value;
 
-                            if (getAndDeleteEmails(account, newestEmail))
-                                EmailsReceived = true;
+                            handleEmailServiceException(ae, accountName);
                         }
+
                     }
                     catch (EmailServiceException e)
                     {
@@ -550,7 +587,29 @@ namespace EmailNotifier
                     }
                 }
             }
-            return EmailsReceived;
+            setDefaultStatusLabel();
+            return emailsReceived;
+        }
+
+ 
+        private void tryGetEmails(ref bool emailsReceived, EmailAccount account)
+        {
+            setStatusLabelText("checking for emails: " + account.name);
+
+            if (account.allEmailsList.Count == 0)
+            {
+                if (getEmails(account, ProgramSettings.numberOfEmailsAtSetup))
+                    emailsReceived = true;
+            }
+            else
+            {
+                IEmailMessage newestEmail = account.allEmailsList.First.Value;
+
+                if (getAndDeleteEmails(account, newestEmail))
+                    emailsReceived = true;
+            }
+
+            //return emailsReceived;
         }
 
 
