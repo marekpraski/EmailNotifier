@@ -71,6 +71,7 @@ namespace EmailNotifier
             };
         }
 
+        //niektóre wiadomości na serwerze nie mają id, trzeba to obsłużyć
         protected string tryGetId(MimeMessage mimeMessage)
         {
             if (mimeMessage.MessageId != null)

@@ -279,11 +279,12 @@ namespace EmailNotifier
                     do
                     {
                         mimeMessage = emailClient.Inbox.GetMessage(emailIndex);
+                        string id = tryGetId(mimeMessage);
 
-                        if (emailsToDeleteDict.ContainsKey(tryGetId(mimeMessage)))
+                        if (emailsToDeleteDict.ContainsKey(id))
                         {
                             emailClient.Inbox.MoveTo(emailIndex, trash); // .AddFlags(messageIndex, MessageFlags.Deleted,true);
-                            emailsToDeleteDict.Remove(mimeMessage.MessageId);
+                            emailsToDeleteDict.Remove(id);
                         }
                         emailIndex--;
                     }

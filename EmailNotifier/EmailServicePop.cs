@@ -230,19 +230,19 @@ namespace EmailNotifier
                     }
 
                     int emailIndex = numberOfEmailsOnServer - 1;                //index ostatniego, tj najnowszego, maila na serwerze
-                    MimeMessage mimeMessage = null; ;
+                    MimeMessage mimeMessage = null;
 
                     do
                     {
                         mimeMessage = emailClient.GetMessage(emailIndex);
+                        string id = tryGetId(mimeMessage);
 
-                        if (emailsToDeleteDict.ContainsKey(tryGetId(mimeMessage)))
+                        if (emailsToDeleteDict.ContainsKey(id))
                         {
                             emailClient.DeleteMessage(emailIndex);
-                            emailsToDeleteDict.Remove(mimeMessage.MessageId);
+                            emailsToDeleteDict.Remove(id);
                         }
                         emailIndex--;
-
                     }
                     //teoretycznie wiadomość może być usunięta na serwerze w inny sposób pomiędzy czasem kiedy została zaznaczona do usunięcia w programie 
                     //a zanim została usunięta w tej pętli, więc pętlę muszę zatrzymać gdy dojdę do wiadomości na serwerze, 
