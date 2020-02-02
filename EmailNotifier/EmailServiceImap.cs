@@ -280,7 +280,7 @@ namespace EmailNotifier
                     {
                         mimeMessage = emailClient.Inbox.GetMessage(emailIndex);
 
-                        if (emailsToDeleteDict.ContainsKey(mimeMessage.MessageId))
+                        if (emailsToDeleteDict.ContainsKey(tryGetId(mimeMessage)))
                         {
                             emailClient.Inbox.MoveTo(emailIndex, trash); // .AddFlags(messageIndex, MessageFlags.Deleted,true);
                             emailsToDeleteDict.Remove(mimeMessage.MessageId);

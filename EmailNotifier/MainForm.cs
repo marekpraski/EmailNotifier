@@ -566,15 +566,15 @@ namespace EmailNotifier
                             tryGetEmails(ref emailsReceived, account);
                         },token);
                         await t;
-                        try
-                        {
+                        //try
+                        //{
                             Task.WaitAll(t);
-                        }
-                        catch (AggregateException ae)
-                        {
+                        //}
+                        //catch (AggregateException ae)
+                        //{
 
-                            handleEmailServiceException(ae, accountName);
-                        }
+                        //    handleEmailServiceException(ae, accountName);
+                        //}
 
                     }
                     catch (EmailServiceException e)

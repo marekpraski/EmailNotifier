@@ -63,13 +63,21 @@ namespace EmailNotifier
             return new EmailMessage()
             {
                 Subject = message.Subject,
-                Id = message.MessageId,
+                Id = tryGetId(message),
                 FromAddress = message.From.ToString(),
                 DateTime = message.Date.LocalDateTime,
                 Content = message.TextBody,
                 nrOnServer = messageIndex
             };
         }
+
+        protected string tryGetId(MimeMessage mimeMessage)
+        {
+            if (mimeMessage.MessageId != null)
+                return mimeMessage.MessageId;
+            return mimeMessage.From.ToString() + mimeMessage.Subject + mimeMessage.Date.ToString();
+        }
+
 
         protected void tryAddToNewEmailsList(IEmailMessage benchmarkEmail, IEmailMessage emailToAdd)
         {
