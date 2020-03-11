@@ -66,7 +66,7 @@ namespace EmailNotifier
                 Id = tryGetId(message),
                 FromAddress = message.From.ToString(),
                 DateTime = message.Date.LocalDateTime.Year < 2020 ?  DateTime.Now : message.Date.LocalDateTime,      //trafiła się wiadomość, gdzie DateTime był  0001 - 01 - 01 00:00:00 + 00:00
-                Content = message.TextBody,
+                Content = message.TextBody != null ? message.TextBody : message.HtmlBody, 
                 nrOnServer = messageIndex
             };
         }
