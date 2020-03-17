@@ -159,9 +159,13 @@ namespace EmailNotifier
                 }
 
             }
-            catch (MailKit.Net.Pop3.Pop3ProtocolException e)
+            catch (Pop3ProtocolException e)
             {
                 throw new EmailServiceException("Email service error", e);
+            }
+            catch (Pop3CommandException ex)
+            {
+                throw new EmailServiceException("Email service error", ex);
             }
             catch (MailKit.ServiceNotConnectedException e)
             {
