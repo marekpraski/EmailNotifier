@@ -169,6 +169,10 @@ namespace EmailNotifier
             {
                 throw new EmailServiceException("Email service error", e);
             }
+            catch(System.InvalidOperationException e)
+            {
+                throw new EmailServiceException("Email service error", e);
+            }
         }
 
 
