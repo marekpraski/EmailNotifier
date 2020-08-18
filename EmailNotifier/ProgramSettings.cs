@@ -13,9 +13,9 @@ namespace EmailNotifier
         public static string emailTextSummaryFileName = "emailSummary.txt";
 
 #if DEBUG
-        public static string fileSavePath = @"C:\testDesktop\emNotTest\";
+        public static string fileSavePath = @"C:\testApps\emNotTest\";
 #else
-         public static string fileSavePath = @"data\";     //tzn katalog data pod katalogiem, z którego skąd aplikacja jest uruchamiana
+         public static string fileSavePath = @"data\";     //tzn katalog data pod katalogiem, z którego aplikacja jest uruchamiana
 #endif
 
         public static int checkEmailTimespan { get; set; } = 15;            //minut 

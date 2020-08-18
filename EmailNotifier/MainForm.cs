@@ -657,12 +657,8 @@ namespace EmailNotifier
         {
             MyMessageBox.displayAndClose("błąd konta  " + accountName + "\r\n" + e.Message + "    " + e.InnerException + "\r\nsee the errorlog file for details", 30);
             string errorLogFileName = "emailNotifierError.log";
-            using (FileStream file = new FileStream(errorLogFileName, FileMode.Append))
-            {
-                StreamWriter writer = new StreamWriter(file);
-                writer.Write(DateTime.Now.ToString() + "\r\n" + e.Message + "\r\n" + e.InnerException + "\r\n" + e.Source + "\r\n" + e.StackTrace + "\r\n" + "\r\n");
-                writer.Close();
-            }
+            string errorText = DateTime.Now.ToString() + "\r\n" + e.Message + "\r\n" + e.InnerException + "\r\n" + e.Source + "\r\n" + e.StackTrace + "\r\n" + "\r\n";
+            saveTextToFile(errorText, errorLogFileName);
         }
 
 

@@ -97,7 +97,7 @@ namespace EmailNotifier
             if (newEmailsList.Count == 0)
             {
                 int i = emailTrimIndex +1;
-                while (allEmailsList.ElementAt(i).visible && i < allEmailsList.Count)
+                while (i < allEmailsList.Count && allEmailsList.ElementAt(i).visible)
                 {
                     allEmailsList.ElementAt(i).visible = false;
                     i++;
