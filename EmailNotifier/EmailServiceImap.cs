@@ -56,6 +56,10 @@ namespace EmailNotifier
             {
                 MyMessageBox.display(ex.Message + "\r\n" + emailAccountConfiguration.receiveServer.url, MyMessageBoxType.Error);
             }
+            catch(MailKit.Security.SslHandshakeException ioexe)
+            {
+                MyMessageBox.display(ioexe.Message + "\r\n" + emailAccountConfiguration.receiveServer.url, MyMessageBoxType.Error);
+            }
 
             return this.connected;
         }

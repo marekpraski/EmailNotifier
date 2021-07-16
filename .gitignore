@@ -1,3 +1,5 @@
 /EmailNotifier/bin/
 /EmailNotifier/obj/
 /packages/
+.vs/
+.git/
