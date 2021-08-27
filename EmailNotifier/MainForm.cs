@@ -655,7 +655,7 @@ namespace EmailNotifier
 
         private void handleEmailServiceException(Exception e, string accountName = "")
         {
-            MyMessageBox.displayAndClose("błąd konta  " + accountName + "\r\n" + e.Message + "    " + e.InnerException + "\r\nsee the errorlog file for details", 30);
+            MyMessageBox.displayAndClose("błąd konta  " + accountName + "\r\n" + e.Message + "    " + e.InnerException + "\r\nsee the errorlog file for details", 5);
             string errorLogFileName = "emailNotifierError.log";
             string errorText = DateTime.Now.ToString() + "\r\n" + e.Message + "\r\n" + e.InnerException + "\r\n" + e.Source + "\r\n" + e.StackTrace + "\r\n" + "\r\n";
             saveTextToFile(errorText, errorLogFileName);

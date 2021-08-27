@@ -44,21 +44,9 @@ namespace EmailNotifier
                 this.emailClient.Authenticate(emailAccountConfiguration.username, emailAccountConfiguration.password);
                 connected = true;
             }
-            catch (NotSupportedException exc)
+            catch (Exception exc)
             {
-                MyMessageBox.display(exc.Message + "\r\n" + emailAccountConfiguration.receiveServer.url, MyMessageBoxType.Error);
-            }
-            catch (System.Net.Sockets.SocketException e)
-            {
-                MyMessageBox.display(e.Message + "\r\n" + emailAccountConfiguration.receiveServer.url, MyMessageBoxType.Error);
-            }
-            catch (MailKit.Security.AuthenticationException ex)
-            {
-                MyMessageBox.display(ex.Message + "\r\n" + emailAccountConfiguration.receiveServer.url, MyMessageBoxType.Error);
-            }
-            catch(MailKit.Security.SslHandshakeException ioexe)
-            {
-                MyMessageBox.display(ioexe.Message + "\r\n" + emailAccountConfiguration.receiveServer.url, MyMessageBoxType.Error);
+                throw new EmailServiceException("Email account error", exc);
             }
 
             return this.connected;
@@ -165,15 +153,7 @@ namespace EmailNotifier
                 }
 
             }
-            catch (ImapProtocolException e)
-            {
-                throw new EmailServiceException("Email service error", e);
-            }
-            catch (MailKit.ServiceNotConnectedException e)
-            {
-                throw new EmailServiceException("Email service error", e);
-            }
-            catch(System.InvalidOperationException e)
+            catch (Exception e)
             {
                 throw new EmailServiceException("Email service error", e);
             }
@@ -275,10 +255,10 @@ namespace EmailNotifier
                         trash = emailClient.GetFolder(SpecialFolder.Trash);
 
                     }
-                    catch (NotSupportedException e)
+                    catch (Exception e)
                     {
 
-                        throw new EmailServiceException("The email service does not support moving emails to Trash " + emailAccountConfiguration.receiveServer.url, e);
+                        throw new EmailServiceException("Email service error " + emailAccountConfiguration.receiveServer.url, e);
                     }
 
                     int emailIndex = numberOfEmailsOnServer - 1;                //index ostatniego, tj najnowszego, maila na serwerze
@@ -301,11 +281,7 @@ namespace EmailNotifier
                     //która jest starsza od najstarszej przekazanej do skasowania
                     while (emailsToDeleteDict.Count > 0 && mimeMessage.Date >= oldestMessage.DateTime && emailIndex > 0);
                 }
-                catch (ImapProtocolException e)
-                {
-                    throw new EmailServiceException("Email service error " + emailAccountConfiguration.receiveServer.url, e);
-                }
-                catch (MailKit.ServiceNotConnectedException e)
+                catch (Exception e)
                 {
                     throw new EmailServiceException("Email service error " + emailAccountConfiguration.receiveServer.url, e);
                 }

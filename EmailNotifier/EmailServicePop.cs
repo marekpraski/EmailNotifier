@@ -50,17 +50,9 @@ namespace EmailNotifier
                 this.emailClient.Authenticate(emailAccountConfiguration.username, emailAccountConfiguration.password);
                 connected = true;
             }
-            catch (MailKit.Security.SslHandshakeException exc)
+            catch (Exception exc)
             {
-                MyMessageBox.display(exc.Message + "\r\n" + emailAccountConfiguration.receiveServer.url, MyMessageBoxType.Error);
-            }
-            catch (System.Net.Sockets.SocketException e)
-            {
-                MyMessageBox.display(e.Message + "\r\n" + emailAccountConfiguration.receiveServer.url, MyMessageBoxType.Error);
-            }
-            catch (MailKit.Security.AuthenticationException ex)
-            {
-                MyMessageBox.display(ex.Message + "\r\n" + emailAccountConfiguration.receiveServer.url, MyMessageBoxType.Error);
+                throw new EmailServiceException("Email account error", exc);
             }
 
             return this.connected;
@@ -253,15 +245,7 @@ namespace EmailNotifier
                     //która jest starsza od najstarszej przekazanej do skasowania
                     while (emailsToDeleteDict.Count > 0 && mimeMessage.Date >= oldestEmail.DateTime && emailIndex > 0);
                 }
-                catch (MailKit.Net.Pop3.Pop3ProtocolException e)
-                {
-                    throw new EmailServiceException("Email service error", e);
-                }
-                catch(Pop3CommandException e)
-                {
-                    throw new EmailServiceException("Email service error", e);
-                }
-                catch (MailKit.ServiceNotConnectedException e)
+                catch (Exception e)
                 {
                     throw new EmailServiceException("Email service error", e);
                 }
@@ -279,11 +263,7 @@ namespace EmailNotifier
                     if (connected) this.emailClient.Disconnect(true);
                 }
             }
-            catch (MailKit.Net.Pop3.Pop3ProtocolException e)
-            {
-                throw new EmailServiceException("Email service error", e);
-            }
-            catch (MailKit.ServiceNotConnectedException e)
+            catch (Exception e)
             {
                 throw new EmailServiceException("Email service error", e);
             }
