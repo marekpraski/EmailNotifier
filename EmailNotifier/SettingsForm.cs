@@ -7,10 +7,10 @@ namespace EmailNotifier
     {
         public event EventHandler<SettingsArgs> saveSettingsEvent;
 
-        public int checkEmailTimespan { get; set; }           //minut 
-        public int notificationFrequency { get; set; }      //sekund
-        public int numberOfEmailsKept { get; set; }           //przeczytanych maili
-        public int emailNumberAtSetup { get; set; }        //emaili wczytywanych na starcie po utworzeniu konta
+        private int checkEmailTimespan { get; set; }           //minut 
+        private int notificationFrequency { get; set; }      //sekund
+        private int numberOfEmailsKept { get; set; }           //przeczytanych maili
+        private int emailNumberAtSetup { get; set; }        //emaili wczytywanych na starcie po utworzeniu konta
         public SettingsForm()
         {
             InitializeComponent();
@@ -28,6 +28,7 @@ namespace EmailNotifier
             notificationTimerTextbox.Text = notificationFrequency.ToString();
             numberOfEmailsKeptTextbox.Text = numberOfEmailsKept.ToString();
             numberOfEmailsAtSetupTextBox.Text = emailNumberAtSetup.ToString();
+            cbEnableLog.Checked = ProgramSettings.enableLogFile;
         }
 
 
@@ -42,6 +43,7 @@ namespace EmailNotifier
                     args.notificationBubbleTimespan = notificationFrequency;
                     args.emailNumberKept = numberOfEmailsKept;
                     args.emailNumberAtSetup = emailNumberAtSetup;
+                    args.enableLogFile = cbEnableLog.Checked;
                     saveSettingsEvent(this, args);
                     this.Close();
                 }

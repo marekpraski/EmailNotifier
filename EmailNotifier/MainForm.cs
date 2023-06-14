@@ -69,7 +69,6 @@ namespace EmailNotifier
         }
 
 
-
         private void assertDataDirectoryExists()
         {
             Directory.CreateDirectory(ProgramSettings.fileSavePath);
@@ -96,8 +95,6 @@ namespace EmailNotifier
             //zamieniam sekundy na milisekundy, nie mniej niż 20 sekund
             this.toggleNotifyiconTimer.Interval = ProgramSettings.showNotificationTimespan * 1000 < 20000 ? 20000 : ProgramSettings.showNotificationTimespan * 1000;
         }
-
-
 
 
         // czyta dane kont pocztowych z pliku
@@ -149,8 +146,6 @@ namespace EmailNotifier
             }
         }
 
-
-
         // uruchamia okno konfiguracji kont mailowych i przypisuje metodę do zdarzenia zapisu w tym oknie
         private void configureEmailAccounts()
         {
@@ -175,8 +170,6 @@ namespace EmailNotifier
 
 
         #endregion
-
-
 
         #region Region status Label
 
@@ -212,10 +205,7 @@ namespace EmailNotifier
 
         #endregion
 
-
-
         #region Region - interakcja użytkownika w głównym pasku i oknie programu
-
 
         // minimalizacja okna powoduje pojawienie się ikony na pasku oraz uruchomienie timera odpowiedzialnego za automatyczne sprawdzanie poczty
         private void MainForm_Resize(object sender, EventArgs e)
@@ -256,7 +246,6 @@ namespace EmailNotifier
         }
 
 
-
         // powrót głównego okna do normalnej postaci oraz zatrzymanie timera odpowiedzialnego za automatyczne sprawdzanie poczty
         private void NotifyIcon_Click(object sender, EventArgs e)
         {
@@ -273,7 +262,6 @@ namespace EmailNotifier
         }
 
 
-
         //
         //pasek narzędziowy
         //
@@ -282,7 +270,6 @@ namespace EmailNotifier
         {
             configureEmailAccounts();
         }
-
 
 
         // ręczne sprawdzanie poczty
@@ -310,7 +297,6 @@ namespace EmailNotifier
                 MyMessageBox.display(exc.Message, MyMessageBoxType.Error);
             }
         }
-
 
 
         private void ShowNewEmailsButton_Click(object sender, EventArgs e)
@@ -355,8 +341,6 @@ namespace EmailNotifier
             saveDataToFile();
         }
 
-
-
         private void SettingsButton_Click(object sender, EventArgs e)
         {
             //ProgramSettings ps = new ProgramSettings();
@@ -372,14 +356,12 @@ namespace EmailNotifier
             MyMessageBox.display(infoButtonMessage);
         }
 
-
         private void ListView_MouseDoubleClick(object sender, MouseEventArgs e)
         {
             ListView listView = sender as ListView;
             if(listView.SelectedItems.Count == 1)
                 displayEmailBody(listView);
         }
-
 
         private void ListView_KeyDown(object sender, KeyEventArgs e)
         {
@@ -420,11 +402,7 @@ namespace EmailNotifier
             }        
         }
 
-
-
         #endregion
-
-
 
         #region Region - interakcja użytkownika - przechwytywanie zdarzeń z innych okien programu
 
@@ -476,8 +454,6 @@ namespace EmailNotifier
 
         #endregion
 
-
-
         #region Region - automat sprawdzający pocztę
 
         private async void CheckEmailsTimer_Tick(object sender, EventArgs e)
@@ -517,8 +493,6 @@ namespace EmailNotifier
 
 
         #endregion
-
-
 
         #region Region - czytanie i kasowanie emaili z serwisu
 
@@ -566,15 +540,6 @@ namespace EmailNotifier
                             tryGetEmails(ref emailsReceived, account);
                         },token);
                         await t;
-                        //try
-                        //{
-                            Task.WaitAll(t);
-                        //}
-                        //catch (AggregateException ae)
-                        //{
-
-                        //    handleEmailServiceException(ae, accountName);
-                        //}
 
                     }
                     catch (EmailServiceException e)
@@ -608,8 +573,6 @@ namespace EmailNotifier
                 if (getAndDeleteEmails(account, newestEmail))
                     emailsReceived = true;
             }
-
-            //return emailsReceived;
         }
 
 
@@ -656,6 +619,8 @@ namespace EmailNotifier
         private void handleEmailServiceException(Exception e, string accountName = "")
         {
             MyMessageBox.displayAndClose("błąd konta  " + accountName + "\r\n" + e.Message + "    " + e.InnerException + "\r\nsee the errorlog file for details", 5);
+            if (!ProgramSettings.enableLogFile)
+                return;
             string errorLogFileName = "emailNotifierError.log";
             string errorText = DateTime.Now.ToString() + "\r\n" + e.Message + "\r\n" + e.InnerException + "\r\n" + e.Source + "\r\n" + e.StackTrace + "\r\n" + "\r\n";
             saveTextToFile(errorText, errorLogFileName);
@@ -663,8 +628,6 @@ namespace EmailNotifier
 
 
         #endregion
-
-
 
         #region Region - wyświetlanie emaili
 
@@ -1106,8 +1069,6 @@ namespace EmailNotifier
 
         #endregion
 
-
-
         #region Region - zapisywanie ustawień i danych
 
 
@@ -1118,6 +1079,8 @@ namespace EmailNotifier
             ProgramSettings.checkEmailTimespan = args.emailCheckTimespan;
             ProgramSettings.showNotificationTimespan = args.notificationBubbleTimespan;
             ProgramSettings.numberOfEmailsAtSetup = args.emailNumberAtSetup;
+            ProgramSettings.enableLogFile = args.enableLogFile;
+            saveTextToFile(ProgramSettings.settingsToText(), "emailNotifierSettings.txt");
             setTimers();
         }
 

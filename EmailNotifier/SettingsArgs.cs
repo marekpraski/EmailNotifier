@@ -12,5 +12,6 @@ namespace EmailNotifier
         public int notificationBubbleTimespan { get; set; }
         public int emailNumberKept { get; set; }
         public int emailNumberAtSetup { get; set; }
+        public bool enableLogFile { get; set; }
     }
 }

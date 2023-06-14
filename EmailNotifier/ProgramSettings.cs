@@ -23,6 +23,25 @@ namespace EmailNotifier
         public static int numberOfEmailsKept { get; set; } = 50;               //przeczytanych maili
         public static int numberOfEmailsAtSetup { get; set; } = 10;          //emaili wczytywanych na starcie po utworzeniu konta
         public static bool deleteCheckedEmails { get; set; } = false;
+        public static bool enableLogFile { get; set; } = false;
+        private static int deleteCheckedEmailsAsInt => deleteCheckedEmails ? 1 : 0;
+        private static int enableLogFileAsInt => enableLogFile ? 1 : 0;
 
+        public static string settingsToText()
+		{
+            StringBuilder sb = new StringBuilder();
+            sb.Append(checkEmailTimespan);
+            sb.Append(";");
+            sb.Append(showNotificationTimespan);
+            sb.Append(";");
+            sb.Append(numberOfEmailsKept);
+            sb.Append(";");
+            sb.Append(numberOfEmailsAtSetup);
+            sb.Append(";");
+            sb.Append(deleteCheckedEmailsAsInt);
+            sb.Append(";");
+            sb.Append(enableLogFileAsInt);
+            return sb.ToString();
+		}
     }
 }
